@@ -1,0 +1,424 @@
+<template>
+  <Layout pageTitle="Apps">
+    <div class="mb-6 flex justify-between items-center">
+      <h2 class="text-xl font-semibold">App Management</h2>
+      <div class="flex space-x-2">
+        <select v-model="countryFilter" class="input">
+          <option value="">All Countries</option>
+          <option v-for="country in uniqueCountries" :key="country" :value="country">
+            {{ country }}
+          </option>
+        </select>
+        <input 
+          v-model="searchQuery" 
+          type="text" 
+          placeholder="Search apps..." 
+          class="input"
+        />
+        <button @click="showCreateModal = true" class="btn btn-primary">
+          Add App
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-if="isLoading" class="col-span-full flex justify-center items-center h-64">
+        <p class="text-gray-500">Loading apps...</p>
+      </div>
+      
+      <div v-else-if="error" class="col-span-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        {{ error }}
+      </div>
+      
+      <div v-else-if="filteredApps.length === 0" class="col-span-full flex justify-center items-center h-64">
+        <p class="text-gray-500">No apps found</p>
+      </div>
+      
+      <div v-for="app in filteredApps" :key="app.id" class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="h-40 bg-gray-200 flex items-center justify-center">
+          <img v-if="app.imageUrl" :src="app.imageUrl" class="h-full w-full object-cover" alt="" />
+          <div v-else class="text-4xl text-gray-400">
+            {{ app.title.charAt(0).toUpperCase() }}
+          </div>
+        </div>
+        <div class="p-4">
+          <div class="flex justify-between items-start">
+            <h3 class="text-lg font-medium text-gray-900">{{ app.title }}</h3>
+            <span v-if="app.countryCode" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+              {{ app.countryCode }}
+            </span>
+          </div>
+          <p class="mt-1 text-sm text-gray-500">{{ truncate(app.description || '', 100) }}</p>
+          <p class="mt-2 text-xs text-gray-500">App ID: {{ app.appId }}</p>
+          
+          <div v-if="app.goalCategory" class="mt-2">
+            <p class="text-xs text-gray-500">Related Category:</p>
+            <div class="flex items-center mt-1">
+              <span 
+                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full mr-2"
+                :class="{
+                  'bg-blue-100 text-blue-800': app.goalCategory.name === 'education',
+                  'bg-green-100 text-green-800': app.goalCategory.name === 'financial',
+                  'bg-purple-100 text-purple-800': app.goalCategory.name === 'health',
+                  'bg-yellow-100 text-yellow-800': app.goalCategory.name === 'work'
+                }"
+              >
+                {{ app.goalCategory.name }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="mt-4 flex justify-between">
+            <div>
+              <button @click="editApp(app)" class="text-sm text-primary-600 hover:text-primary-900 mr-3">
+                Edit
+              </button>
+              <button @click="confirmDelete(app)" class="text-sm text-red-600 hover:text-red-900">
+                Delete
+              </button>
+            </div>
+            <router-link :to="`/apps/${app.id}`" class="text-sm text-primary-600 hover:text-primary-900">
+              View Details
+            </router-link>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div v-if="showCreateModal || showEditModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">
+          {{ showEditModal ? 'Edit App' : 'Create App' }}
+        </h3>
+        
+        <form @submit.prevent="showEditModal ? updateApp() : createApp()">
+          <div class="space-y-4">
+            <div>
+              <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+              <input 
+                id="title" 
+                v-model="formData.title" 
+                type="text" 
+                required 
+                class="input mt-1"
+              />
+            </div>
+            
+            <div>
+              <label for="appId" class="block text-sm font-medium text-gray-700">App ID</label>
+              <input 
+                id="appId" 
+                v-model="formData.appId" 
+                type="text" 
+                required 
+                class="input mt-1"
+              />
+            </div>
+            
+            <div>
+              <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+              <textarea 
+                id="description" 
+                v-model="formData.description" 
+                rows="3" 
+                class="input mt-1"
+              ></textarea>
+            </div>
+            
+            <div>
+              <label for="imageUrl" class="block text-sm font-medium text-gray-700">Image URL</label>
+              <input 
+                id="imageUrl" 
+                v-model="formData.imageUrl" 
+                type="text" 
+                class="input mt-1"
+              />
+            </div>
+            
+            <div>
+              <label for="goalCategoryId" class="block text-sm font-medium text-gray-700">Goal Category</label>
+              <select id="goalCategoryId" v-model="formData.goalCategoryId" class="input mt-1" required>
+                <option value="" disabled>Select a category</option>
+                <option v-for="category in goalCategories" :key="category.id" :value="category.id">
+                  {{ category.name }}
+                </option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="countryCode" class="block text-sm font-medium text-gray-700">Country</label>
+              <select id="countryCode" v-model="formData.countryCode" class="input mt-1">
+                <option value="">No country</option>
+                <option v-for="country in countries" :key="country.code" :value="country.code">
+                  {{ country.name }}
+                </option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="mt-6 flex justify-end space-x-3">
+            <button 
+              type="button" 
+              @click="closeModal" 
+              class="btn btn-secondary"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              class="btn btn-primary"
+              :disabled="formSubmitting"
+            >
+              {{ showEditModal ? 'Update' : 'Create' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div v-if="showDeleteModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
+        <p class="text-sm text-gray-500 mb-4">
+          Are you sure you want to delete the app "{{ appToDelete?.title }}"? This action cannot be undone.
+        </p>
+        
+        <div class="flex justify-end space-x-3">
+          <button 
+            type="button" 
+            @click="showDeleteModal = false" 
+            class="btn btn-secondary"
+          >
+            Cancel
+          </button>
+          <button 
+            type="button" 
+            @click="deleteApp" 
+            class="btn bg-red-600 text-white hover:bg-red-700"
+            :disabled="formSubmitting"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </Layout>
+</template>
+
+<script lang="ts">
+import { defineComponent, ref, computed, reactive, onMounted } from 'vue';
+import swrv from 'swrv';
+import { api, endpoints, App, Goal, Country } from '@/services/api';
+import Layout from '@/components/Layout.vue';
+
+export default defineComponent({
+  name: 'Apps',
+  components: {
+    Layout
+  },
+  setup() {
+    const searchQuery = ref('');
+    const countryFilter = ref('');
+    
+    const { data: apps, error, isValidating: isLoading, mutate } = swrv<App[]>(
+      endpoints.apps,
+      () => api.get(endpoints.apps).then(res => res.data)
+    );
+    
+    const goalCategories = ref<any[]>([]);
+    const countries = ref<Country[]>([]);
+    
+    const loadGoalCategories = async () => {
+      try {
+        const response = await api.get('/goal-categories');
+        goalCategories.value = response.data;
+      } catch (err) {
+        console.error('Failed to load goal categories:', err);
+      }
+    };
+    
+    const loadCountries = async () => {
+      try {
+        const response = await api.get('/countries');
+        countries.value = response.data;
+      } catch (err) {
+        console.error('Failed to load countries:', err);
+      }
+    };
+    
+    onMounted(() => {
+      loadGoalCategories();
+      loadCountries();
+    });
+    
+    const uniqueCountries = computed(() => {
+      if (!apps.value) return [];
+      
+      const countryCodes = apps.value
+        .map(app => app.countryCode)
+        .filter(Boolean) as string[];
+      
+      return [...new Set(countryCodes)];
+    });
+    
+    const filteredApps = computed(() => {
+      if (!apps.value) return [];
+      
+      return apps.value.filter(app => {
+        // Apply country filter
+        if (countryFilter.value && app.countryCode !== countryFilter.value) {
+          return false;
+        }
+        
+        // Apply search query
+        if (searchQuery.value) {
+          const query = searchQuery.value.toLowerCase();
+          return app.title.toLowerCase().includes(query) || 
+                 app.appId.toLowerCase().includes(query) ||
+                 (app.description?.toLowerCase().includes(query) || false);
+        }
+        
+        return true;
+      });
+    });
+    
+    const showCreateModal = ref(false);
+    const showEditModal = ref(false);
+    const showDeleteModal = ref(false);
+    const formSubmitting = ref(false);
+    const appToDelete = ref<App | null>(null);
+    
+    const formData = reactive({
+      id: '',
+      title: '',
+      description: '',
+      imageUrl: '',
+      appId: '',
+      goalCategoryId: '',
+      countryCode: ''
+    });
+    
+    const resetForm = () => {
+      formData.id = '';
+      formData.title = '';
+      formData.description = '';
+      formData.imageUrl = '';
+      formData.appId = '';
+      formData.goalCategoryId = '';
+      formData.countryCode = '';
+    };
+    
+    const closeModal = () => {
+      showCreateModal.value = false;
+      showEditModal.value = false;
+      resetForm();
+    };
+    
+    const editApp = (app: App) => {
+      formData.id = app.id;
+      formData.title = app.title;
+      formData.description = app.description || '';
+      formData.imageUrl = app.imageUrl || '';
+      formData.appId = app.appId;
+      formData.goalCategoryId = app.goalCategory?.id || '';
+      formData.countryCode = app.countryCode || '';
+      showEditModal.value = true;
+    };
+    
+    const createApp = async () => {
+      try {
+        formSubmitting.value = true;
+        await api.post(endpoints.apps, {
+          title: formData.title,
+          description: formData.description,
+          imageUrl: formData.imageUrl,
+          appId: formData.appId,
+          goalCategoryId: formData.goalCategoryId,
+          countryCode: formData.countryCode
+        });
+        
+        await mutate();
+        closeModal();
+      } catch (err) {
+        console.error('Failed to create app:', err);
+      } finally {
+        formSubmitting.value = false;
+      }
+    };
+    
+    const updateApp = async () => {
+      try {
+        formSubmitting.value = true;
+        await api.patch(endpoints.app(formData.id), {
+          title: formData.title,
+          description: formData.description,
+          imageUrl: formData.imageUrl,
+          appId: formData.appId,
+          goalCategoryId: formData.goalCategoryId,
+          countryCode: formData.countryCode
+        });
+        
+        await mutate();
+        closeModal();
+      } catch (err) {
+        console.error('Failed to update app:', err);
+      } finally {
+        formSubmitting.value = false;
+      }
+    };
+    
+    const confirmDelete = (app: App) => {
+      appToDelete.value = app;
+      showDeleteModal.value = true;
+    };
+    
+    const deleteApp = async () => {
+      if (!appToDelete.value) return;
+      
+      try {
+        formSubmitting.value = true;
+        await api.delete(endpoints.app(appToDelete.value.id));
+        
+        await mutate();
+        showDeleteModal.value = false;
+        appToDelete.value = null;
+      } catch (err) {
+        console.error('Failed to delete app:', err);
+      } finally {
+        formSubmitting.value = false;
+      }
+    };
+    
+    const truncate = (text: string, length: number) => {
+      return text.length > length ? text.substring(0, length) + '...' : text;
+    };
+    
+    return {
+      apps,
+      error,
+      isLoading,
+      searchQuery,
+      countryFilter,
+      uniqueCountries,
+      filteredApps,
+      goalCategories,
+      countries,
+      showCreateModal,
+      showEditModal,
+      showDeleteModal,
+      formData,
+      formSubmitting,
+      appToDelete,
+      closeModal,
+      editApp,
+      createApp,
+      updateApp,
+      confirmDelete,
+      deleteApp,
+      truncate
+    };
+  }
+});
+</script>
