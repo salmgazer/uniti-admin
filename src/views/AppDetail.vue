@@ -54,28 +54,28 @@
       </div>
       
       <!-- Related Goal -->
-      <div v-if="app.goal" class="bg-white rounded-lg shadow p-6">
+      <div v-if="app.goalCategory?.name" class="bg-white rounded-lg shadow p-6">
         <h3 class="text-lg font-medium text-gray-900 mb-4">Related Goal</h3>
         
         <div class="border rounded-lg p-4">
           <div class="flex justify-between items-start">
             <div>
-              <h4 class="font-medium">{{ app.goal.title }}</h4>
-              <p class="text-sm text-gray-500">{{ app.goal.description || 'No description' }}</p>
+              <h4 class="font-medium">{{ app.goalCategory.name}}</h4>
+              <p class="text-sm text-gray-500">{{ app.goalCategory.description || 'No description' }}</p>
             </div>
             <div class="flex space-x-2">
               <span 
                 class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                 :class="{
-                  'bg-blue-100 text-blue-800': app.goal.category === 'education',
-                  'bg-green-100 text-green-800': app.goal.category === 'financial',
-                  'bg-purple-100 text-purple-800': app.goal.category === 'health',
-                  'bg-yellow-100 text-yellow-800': app.goal.category === 'work'
+                  'bg-blue-100 text-blue-800': app.goalCategory.name === 'Education',
+                  'bg-green-100 text-green-800': app.goalCategory.name === 'financial',
+                  'bg-purple-100 text-purple-800': app.goalCategory.name === 'health',
+                  'bg-yellow-100 text-yellow-800': app.goalCategory.name === 'work'
                 }"
               >
-                {{ app.goal.category }}
+                {{ app.goalCategory.name }}
               </span>
-              <span 
+              <!-- <span 
                 class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                 :class="{
                   'bg-blue-100 text-blue-800': app.goal.status === 'active',
@@ -84,11 +84,11 @@
                 }"
               >
                 {{ app.goal.status }}
-              </span>
+              </span> -->
             </div>
           </div>
           
-          <div class="mt-2">
+          <!-- <div class="mt-2">
             <div class="flex justify-between text-sm">
               <span>Progress</span>
               <span>{{ app.goal.progress }}%</span>
@@ -99,13 +99,13 @@
                 :style="{ width: `${app.goal.progress}%` }"
               ></div>
             </div>
-          </div>
+          </div> -->
           
-          <div class="mt-4 text-right">
+          <!-- <div class="mt-4 text-right">
             <router-link :to="`/goals/${app.goal.id}`" class="text-sm text-primary-600 hover:text-primary-900">
               View Goal Details
             </router-link>
-          </div>
+          </div> -->
         </div>
       </div>
       

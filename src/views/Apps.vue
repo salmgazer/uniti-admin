@@ -210,7 +210,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed, reactive, onMounted } from 'vue';
 import swrv from 'swrv';
-import { api, endpoints, App, Goal, Country } from '@/services/api';
+import { api, endpoints, App, Country } from '@/services/api';
 import Layout from '@/components/Layout.vue';
 
 export default defineComponent({

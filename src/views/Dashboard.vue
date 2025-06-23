@@ -82,7 +82,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted } from 'vue';
+import { defineComponent, computed } from 'vue';
 import swrv from 'swrv';
 import { api, endpoints, DashboardStats } from '@/services/api';
 import Layout from '@/components/Layout.vue';
@@ -156,7 +156,7 @@ export default defineComponent({
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'bottom',
+          position: "bottom" as const,
           labels: {
             usePointStyle: true,
             padding: 20,
@@ -176,16 +176,13 @@ export default defineComponent({
           usePointStyle: true,
           callbacks: {
             labelPointStyle: () => ({
-              pointStyle: 'circle',
+              pointStyle: 'circle' as const,
               rotation: 0
             })
           }
         }
-      },
-      animation: {
-        animateScale: true,
-        animateRotate: true
       }
+      // Removed animation property for compatibility with Bar chart options
     };
 
     return {

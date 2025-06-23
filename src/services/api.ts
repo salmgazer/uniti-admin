@@ -1,4 +1,6 @@
+/// <reference types="vite/client" />
 import axios from 'axios';
+
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -95,6 +97,7 @@ export interface App {
   goalCategory?: {
     id: string;
     name: string;
+    description?: string;
   };
   createdAt: string;
   updatedAt: string;
