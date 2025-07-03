@@ -20,7 +20,18 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/UserDetail.vue'),
     meta: { requiresAuth: true }
   },
-
+  {
+    path: '/messages',
+    name: 'Messages',
+    component: () => import('@/views/Messages.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/messages/:id',
+    name: 'MessageDetail',
+    component: () => import('@/views/MessageDetail.vue'),
+    meta: { requiresAuth: true }
+  },
   {
     path: '/goal-categories',
     name: 'GoalCategories',

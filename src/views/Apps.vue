@@ -391,8 +391,8 @@ export default defineComponent({
       if (formData.goalCategoryId) {
         onCategoryChange();
       }
-      formData.goalSubCategoryIds = app.goalSubCategories?.map(sc => sc.id) || [];
-      formData.goalIds = app.goals?.map(g => g.id) || [];
+      formData.goalSubCategoryIds = app.goalSubCategories?.map((sc: any) => sc.id).filter(Boolean) || [];
+      formData.goalIds = app.goals?.map((g: any) => g.id).filter(Boolean) || [];
       updateAvailableGoals();
       
       showEditModal.value = true;

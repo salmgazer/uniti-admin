@@ -45,6 +45,7 @@ export default defineComponent({
     const menuItems = [
       { name: 'Dashboard', path: '/' },
       { name: 'Users', path: '/users' },
+      { name: 'Messages', path: '/messages' },
       { name: 'Goal Categories', path: '/goal-categories' },
       { name: 'Apps', path: '/apps' },
       { name: 'Countries', path: '/countries' },
@@ -63,6 +64,7 @@ export default defineComponent({
       const icons: Record<string, string> = {
         'Dashboard': '📊',
         'Users': '👥',
+        'Messages': '💬',
         'Goal Categories': '📋',
         'Apps': '📱',
         'Countries': '🌎',

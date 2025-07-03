@@ -99,6 +99,16 @@ export interface App {
     name: string;
     description?: string;
   };
+  goalSubCategories?: {
+    id: string;
+    name: string;
+    description?: string;
+  }[];
+  goals?: {
+    id: string;
+    title: string;
+    description?: string;
+  }[];
   createdAt: string;
   updatedAt: string;
 }
