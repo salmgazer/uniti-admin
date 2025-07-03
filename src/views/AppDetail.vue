@@ -53,59 +53,34 @@
         </div>
       </div>
       
-      <!-- Related Goal -->
-      <div v-if="app.goalCategory?.name" class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Related Goal</h3>
-        
+      <!-- Goal Category -->
+      <div v-if="app.goalCategory" class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Goal Category</h3>
         <div class="border rounded-lg p-4">
-          <div class="flex justify-between items-start">
-            <div>
-              <h4 class="font-medium">{{ app.goalCategory.name}}</h4>
-              <p class="text-sm text-gray-500">{{ app.goalCategory.description || 'No description' }}</p>
-            </div>
-            <div class="flex space-x-2">
-              <span 
-                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                :class="{
-                  'bg-blue-100 text-blue-800': app.goalCategory.name === 'Education',
-                  'bg-green-100 text-green-800': app.goalCategory.name === 'financial',
-                  'bg-purple-100 text-purple-800': app.goalCategory.name === 'health',
-                  'bg-yellow-100 text-yellow-800': app.goalCategory.name === 'work'
-                }"
-              >
-                {{ app.goalCategory.name }}
-              </span>
-              <!-- <span 
-                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                :class="{
-                  'bg-blue-100 text-blue-800': app.goal.status === 'active',
-                  'bg-green-100 text-green-800': app.goal.status === 'completed',
-                  'bg-red-100 text-red-800': app.goal.status === 'abandoned'
-                }"
-              >
-                {{ app.goal.status }}
-              </span> -->
-            </div>
+          <h4 class="font-medium">{{ app.goalCategory.name }}</h4>
+          <p class="text-sm text-gray-500">{{ app.goalCategory.description || 'No description' }}</p>
+        </div>
+      </div>
+      
+      <!-- Goal Sub Categories -->
+      <div v-if="app.goalSubCategories?.length" class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Goal Sub Categories</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div v-for="subCategory in app.goalSubCategories" :key="subCategory.id" class="border rounded-lg p-4">
+            <h4 class="font-medium">{{ subCategory.name }}</h4>
+            <p class="text-sm text-gray-500">{{ subCategory.description || 'No description' }}</p>
           </div>
-          
-          <!-- <div class="mt-2">
-            <div class="flex justify-between text-sm">
-              <span>Progress</span>
-              <span>{{ app.goal.progress }}%</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
-              <div 
-                class="bg-primary-600 h-2.5 rounded-full" 
-                :style="{ width: `${app.goal.progress}%` }"
-              ></div>
-            </div>
-          </div> -->
-          
-          <!-- <div class="mt-4 text-right">
-            <router-link :to="`/goals/${app.goal.id}`" class="text-sm text-primary-600 hover:text-primary-900">
-              View Goal Details
-            </router-link>
-          </div> -->
+        </div>
+      </div>
+      
+      <!-- Goals -->
+      <div v-if="app.goals?.length" class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Supported Goals</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div v-for="goal in app.goals" :key="goal.id" class="border rounded-lg p-4">
+            <h4 class="font-medium">{{ goal.title }}</h4>
+            <p class="text-sm text-gray-500">{{ goal.description || 'No description' }}</p>
+          </div>
         </div>
       </div>
       

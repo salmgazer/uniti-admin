@@ -41,6 +41,7 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ category.description || '-' }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ category.order }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <router-link :to="`/goal-categories/${category.id}`" class="text-blue-600 hover:text-blue-900 mr-3">View</router-link>
               <button @click="editCategory(category)" class="text-primary-600 hover:text-primary-900 mr-3">Edit</button>
               <button @click="confirmDelete(category)" class="text-red-600 hover:text-red-900">Delete</button>
             </td>
@@ -158,6 +159,8 @@
         </div>
       </div>
     </div>
+
+
   </Layout>
 </template>
 

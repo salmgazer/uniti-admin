@@ -103,11 +103,17 @@ export interface App {
   updatedAt: string;
 }
 
+export interface Language {
+  id: string;
+  code: string;
+  title: string;
+}
 export interface Country {
   id: string;
   code: string;
   name: string;
   flagUrl?: string;
+  languages: Language[]
 }
 
 export interface LoginCredentials {

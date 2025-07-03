@@ -48,6 +48,7 @@ export default defineComponent({
       { name: 'Goal Categories', path: '/goal-categories' },
       { name: 'Apps', path: '/apps' },
       { name: 'Countries', path: '/countries' },
+      { name: 'Languages', path: '/languages' },
       { name: 'Admin Users', path: '/admin' },
     ];
     
@@ -65,6 +66,7 @@ export default defineComponent({
         'Goal Categories': '📋',
         'Apps': '📱',
         'Countries': '🌎',
+        'Languages': '🗣️',
         'Admin Users': '🔑',
       };
       return icons[name] || '📄';

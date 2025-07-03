@@ -91,10 +91,27 @@
               />
             </div>
             
+
+            
             <div v-if="formData.flagUrl" class="mt-2">
               <p class="text-sm font-medium text-gray-700">Flag Preview</p>
               <div class="mt-1 h-16 w-24 border rounded">
                 <img :src="formData.flagUrl" class="h-full w-full object-cover" alt="Flag preview" />
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Languages</label>
+              <div class="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
+                <label v-for="language in languages" :key="language.id" class="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    :value="language.id" 
+                    v-model="formData.languageIds" 
+                    class="mr-2"
+                  />
+                  <span class="text-sm">{{ language.title }} ({{ language.code }})</span>
+                </label>
               </div>
             </div>
           </div>
@@ -166,6 +183,11 @@ export default defineComponent({
       () => api.get('/countries').then(res => res.data)
     );
     
+    const { data: languages } = swrv<any[]>(
+      '/languages',
+      () => api.get('/languages').then(res => res.data)
+    );
+    
     const showCreateModal = ref(false);
     const showEditModal = ref(false);
     const showDeleteModal = ref(false);
@@ -176,7 +198,8 @@ export default defineComponent({
       id: '',
       code: '',
       name: '',
-      flagUrl: ''
+      flagUrl: '',
+      languageIds: [] as string[]
     });
     
     const resetForm = () => {
@@ -184,6 +207,7 @@ export default defineComponent({
       formData.code = '';
       formData.name = '';
       formData.flagUrl = '';
+      formData.languageIds = [];
     };
     
     const closeModal = () => {
@@ -197,17 +221,24 @@ export default defineComponent({
       formData.code = country.code;
       formData.name = country.name;
       formData.flagUrl = country.flagUrl || '';
+      formData.languageIds = country.languages?.map(l => l.id) || [];
       showEditModal.value = true;
     };
     
     const createCountry = async () => {
       try {
         formSubmitting.value = true;
-        await api.post('/countries', {
+        const country = await api.post('/countries', {
           code: formData.code.toUpperCase(),
           name: formData.name,
           flagUrl: formData.flagUrl || null
         });
+        
+        if (formData.languageIds.length > 0) {
+          await api.patch(`/countries/${country.data.id}/languages`, {
+            languageIds: formData.languageIds
+          });
+        }
         
         await mutate();
         closeModal();
@@ -224,6 +255,10 @@ export default defineComponent({
         await api.patch(`/countries/${formData.id}`, {
           name: formData.name,
           flagUrl: formData.flagUrl || null
+        });
+        
+        await api.patch(`/countries/${formData.id}/languages`, {
+          languageIds: formData.languageIds
         });
         
         await mutate();
@@ -259,6 +294,7 @@ export default defineComponent({
     
     return {
       countries,
+      languages,
       error,
       isLoading,
       showCreateModal,

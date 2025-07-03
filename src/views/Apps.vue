@@ -87,13 +87,14 @@
 
     <!-- Create/Edit Modal -->
     <div v-if="showCreateModal || showEditModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">
-          {{ showEditModal ? 'Edit App' : 'Create App' }}
-        </h3>
-        
-        <form @submit.prevent="showEditModal ? updateApp() : createApp()">
-          <div class="space-y-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">
+            {{ showEditModal ? 'Edit App' : 'Create App' }}
+          </h3>
+          
+          <form @submit.prevent="showEditModal ? updateApp() : createApp()">
+            <div class="space-y-4">
             <div>
               <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
               <input 
@@ -138,12 +139,43 @@
             
             <div>
               <label for="goalCategoryId" class="block text-sm font-medium text-gray-700">Goal Category</label>
-              <select id="goalCategoryId" v-model="formData.goalCategoryId" class="input mt-1" required>
+              <select id="goalCategoryId" v-model="formData.goalCategoryId" @change="onCategoryChange" class="input mt-1" required>
                 <option value="" disabled>Select a category</option>
                 <option v-for="category in goalCategories" :key="category.id" :value="category.id">
                   {{ category.name }}
                 </option>
               </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Goal Sub Categories</label>
+              <div class="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
+                <label v-for="subCategory in filteredGoalSubCategories" :key="subCategory.id" class="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    :value="subCategory.id" 
+                    v-model="formData.goalSubCategoryIds" 
+                    @change="updateAvailableGoals"
+                    class="mr-2"
+                  />
+                  <span class="text-sm">{{ subCategory.name }}</span>
+                </label>
+              </div>
+            </div>
+            
+            <div v-if="availableGoals.length > 0">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Goals</label>
+              <div class="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
+                <label v-for="goal in availableGoals" :key="goal.id" class="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    :value="goal.id" 
+                    v-model="formData.goalIds" 
+                    class="mr-2"
+                  />
+                  <span class="text-sm">{{ goal.title }}</span>
+                </label>
+              </div>
             </div>
             
             <div>
@@ -155,25 +187,26 @@
                 </option>
               </select>
             </div>
-          </div>
-          
-          <div class="mt-6 flex justify-end space-x-3">
-            <button 
-              type="button" 
-              @click="closeModal" 
-              class="btn btn-secondary"
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              class="btn btn-primary"
-              :disabled="formSubmitting"
-            >
-              {{ showEditModal ? 'Update' : 'Create' }}
-            </button>
-          </div>
-        </form>
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-3">
+              <button 
+                type="button" 
+                @click="closeModal" 
+                class="btn btn-secondary"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                class="btn btn-primary"
+                :disabled="formSubmitting"
+              >
+                {{ showEditModal ? 'Update' : 'Create' }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
 
@@ -229,6 +262,10 @@ export default defineComponent({
     
     const goalCategories = ref<any[]>([]);
     const countries = ref<Country[]>([]);
+    const allGoalSubCategories = ref<any[]>([]);
+    const filteredGoalSubCategories = ref<any[]>([]);
+    const goals = ref<any[]>([]);
+    const availableGoals = ref<any[]>([]);
     
     const loadGoalCategories = async () => {
       try {
@@ -236,6 +273,24 @@ export default defineComponent({
         goalCategories.value = response.data;
       } catch (err) {
         console.error('Failed to load goal categories:', err);
+      }
+    };
+    
+    const loadGoalSubCategories = async () => {
+      try {
+        const response = await api.get('/goal-sub-categories');
+        allGoalSubCategories.value = response.data;
+      } catch (err) {
+        console.error('Failed to load goal sub categories:', err);
+      }
+    };
+    
+    const loadGoals = async () => {
+      try {
+        const response = await api.get('/goals');
+        goals.value = response.data;
+      } catch (err) {
+        console.error('Failed to load goals:', err);
       }
     };
     
@@ -250,6 +305,8 @@ export default defineComponent({
     
     onMounted(() => {
       loadGoalCategories();
+      loadGoalSubCategories();
+      loadGoals();
       loadCountries();
     });
     
@@ -297,7 +354,9 @@ export default defineComponent({
       imageUrl: '',
       appId: '',
       goalCategoryId: '',
-      countryCode: ''
+      countryCode: '',
+      goalSubCategoryIds: [] as string[],
+      goalIds: [] as string[]
     });
     
     const resetForm = () => {
@@ -308,6 +367,9 @@ export default defineComponent({
       formData.appId = '';
       formData.goalCategoryId = '';
       formData.countryCode = '';
+      formData.goalSubCategoryIds = [];
+      formData.goalIds = [];
+      availableGoals.value = [];
     };
     
     const closeModal = () => {
@@ -316,7 +378,7 @@ export default defineComponent({
       resetForm();
     };
     
-    const editApp = (app: App) => {
+    const editApp = async (app: App) => {
       formData.id = app.id;
       formData.title = app.title;
       formData.description = app.description || '';
@@ -324,13 +386,22 @@ export default defineComponent({
       formData.appId = app.appId;
       formData.goalCategoryId = app.goalCategory?.id || '';
       formData.countryCode = app.countryCode || '';
+      
+      // Filter sub categories and set selections
+      if (formData.goalCategoryId) {
+        onCategoryChange();
+      }
+      formData.goalSubCategoryIds = app.goalSubCategories?.map(sc => sc.id) || [];
+      formData.goalIds = app.goals?.map(g => g.id) || [];
+      updateAvailableGoals();
+      
       showEditModal.value = true;
     };
     
     const createApp = async () => {
       try {
         formSubmitting.value = true;
-        await api.post(endpoints.apps, {
+        const response = await api.post(endpoints.apps, {
           title: formData.title,
           description: formData.description,
           imageUrl: formData.imageUrl,
@@ -338,6 +409,18 @@ export default defineComponent({
           goalCategoryId: formData.goalCategoryId,
           countryCode: formData.countryCode
         });
+        
+        if (formData.goalSubCategoryIds.length > 0) {
+          await api.patch(`/apps/${response.data.id}/goal-sub-categories`, {
+            goalSubCategoryIds: formData.goalSubCategoryIds
+          });
+        }
+        
+        if (formData.goalIds.length > 0) {
+          await api.patch(`/apps/${response.data.id}/goals`, {
+            goalIds: formData.goalIds
+          });
+        }
         
         await mutate();
         closeModal();
@@ -358,6 +441,14 @@ export default defineComponent({
           appId: formData.appId,
           goalCategoryId: formData.goalCategoryId,
           countryCode: formData.countryCode
+        });
+        
+        await api.patch(`/apps/${formData.id}/goal-sub-categories`, {
+          goalSubCategoryIds: formData.goalSubCategoryIds
+        });
+        
+        await api.patch(`/apps/${formData.id}/goals`, {
+          goalIds: formData.goalIds
         });
         
         await mutate();
@@ -391,6 +482,35 @@ export default defineComponent({
       }
     };
     
+    const onCategoryChange = () => {
+      // Filter sub categories by selected category
+      filteredGoalSubCategories.value = allGoalSubCategories.value.filter(
+        sc => sc.goalCategoryId === formData.goalCategoryId
+      );
+      
+      // Clear selected sub categories and goals
+      formData.goalSubCategoryIds = [];
+      formData.goalIds = [];
+      availableGoals.value = [];
+    };
+    
+    const updateAvailableGoals = () => {
+      if (formData.goalSubCategoryIds.length === 0) {
+        availableGoals.value = [];
+        formData.goalIds = [];
+        return;
+      }
+      
+      availableGoals.value = goals.value.filter(goal => 
+        formData.goalSubCategoryIds.includes(goal.goalSubCategoryId)
+      );
+      
+      // Remove selected goals that are no longer available
+      formData.goalIds = formData.goalIds.filter(goalId => 
+        availableGoals.value.some(goal => goal.id === goalId)
+      );
+    };
+    
     const truncate = (text: string, length: number) => {
       return text.length > length ? text.substring(0, length) + '...' : text;
     };
@@ -404,7 +524,12 @@ export default defineComponent({
       uniqueCountries,
       filteredApps,
       goalCategories,
+      filteredGoalSubCategories,
+      goals,
       countries,
+      availableGoals,
+      onCategoryChange,
+      updateAvailableGoals,
       showCreateModal,
       showEditModal,
       showDeleteModal,

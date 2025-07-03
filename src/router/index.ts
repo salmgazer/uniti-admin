@@ -28,6 +28,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/goal-categories/:id',
+    name: 'GoalCategoryDetail',
+    component: () => import('@/views/GoalCategoryDetail.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/apps',
     name: 'Apps',
     component: () => import('@/views/Apps.vue'),
@@ -43,6 +49,12 @@ const routes: RouteRecordRaw[] = [
     path: '/countries',
     name: 'Countries',
     component: () => import('@/views/Countries.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/languages',
+    name: 'Languages',
+    component: () => import('@/views/Languages.vue'),
     meta: { requiresAuth: true }
   },
   {
