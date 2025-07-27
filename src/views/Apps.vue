@@ -608,7 +608,7 @@ export default defineComponent({
       
       const formDataUpload = new FormData();
       
-      validAudios.forEach((audio, index) => {
+      validAudios.forEach((audio) => {
         formDataUpload.append('audioFiles', audio.file!);
         formDataUpload.append('languageCodes', audio.languageCode);
       });
