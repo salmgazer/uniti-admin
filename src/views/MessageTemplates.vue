@@ -2,7 +2,7 @@
   <Layout pageTitle="Message Templates">
     <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
       <div>
-        <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-800">Message Templates</h2>
+        <h2 class="text-xl font-semibold">Message Templates</h2>
         <p class="text-gray-500 mt-1">Create and manage reusable message templates</p>
       </div>
       <div class="flex items-center space-x-4">

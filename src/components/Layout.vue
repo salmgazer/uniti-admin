@@ -5,7 +5,7 @@
       <header class="bg-white shadow-sm p-5 sticky top-0 z-10">
         <div class="flex justify-between items-center max-w-7xl mx-auto">
           <h1 class="text-2xl font-bold text-gray-800 bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-800">
-            {{ title }}
+            <!-- {{ title }} -->
           </h1>
           <div class="flex items-center">
             <div class="bg-gray-100 rounded-full px-4 py-2 flex items-center">

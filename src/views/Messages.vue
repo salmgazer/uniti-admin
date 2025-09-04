@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-800">Messages</h2>
+          <h2 class="text-xl font-semibold">Messages</h2>
           <p class="text-gray-500 mt-1">Manage system and coach messages</p>
         </div>
         <div class="flex items-center space-x-4">

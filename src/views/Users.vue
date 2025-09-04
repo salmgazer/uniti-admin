@@ -2,7 +2,7 @@
   <Layout pageTitle="Users">
     <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
       <div>
-        <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-800">User Management</h2>
+        <h2 class="text-xl font-semibold">User Management</h2>
         <p class="text-gray-500 mt-1">Manage and view all registered users</p>
       </div>
       <div class="relative">
