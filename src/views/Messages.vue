@@ -2,55 +2,124 @@
   <Layout pageTitle="Messages">
     <div class="space-y-6">
       <!-- Header -->
-      <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-900">Messages</h1>
-        <button @click="showCreateModal = true" class="btn btn-primary">
-          Create Message
-        </button>
+      <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <div>
+          <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-800">Messages</h2>
+          <p class="text-gray-500 mt-1">Manage system and coach messages</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <input 
+              v-model="searchQuery" 
+              type="text" 
+              placeholder="Search messages..." 
+              class="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white shadow-sm"
+            />
+          </div>
+          <button @click="showCreateModal = true" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Create Message
+          </button>
+        </div>
       </div>
 
-      <!-- Messages List -->
-      <div class="bg-white shadow overflow-hidden sm:rounded-md">
-        <ul class="divide-y divide-gray-200">
-          <li v-for="message in messages" :key="message.id" class="px-6 py-4 hover:bg-gray-50">
-            <div class="flex items-center justify-between">
-              <div class="flex-1">
-                <div class="flex items-center justify-between">
-                  <h3 class="text-lg font-medium text-gray-900">{{ message.subject }}</h3>
-                  <div class="flex items-center space-x-2">
-                    <span 
-                      class="px-2 py-1 text-xs font-semibold rounded-full"
-                      :class="message.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'"
-                    >
-                      {{ message.status }}
-                    </span>
-                    <span class="text-sm text-gray-500">{{ formatDate(message.createdAt) }}</span>
-                  </div>
+      <!-- Messages Table -->
+      <div class="card p-0 overflow-hidden">
+        <table class="table-modern">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Channels</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="isLoading">
+              <td colspan="6" class="px-6 py-8 text-center">
+                <div class="flex justify-center">
+                  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                 </div>
-                <p class="mt-1 text-sm text-gray-600">{{ message.text.substring(0, 100) }}...</p>
-                <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                  <span>Countries: {{ message.countryCodes.join(', ') }}</span>
-                  <span>Channels: {{ message.channels.join(', ') }}</span>
+                <p class="mt-2 text-gray-500">Loading messages...</p>
+              </td>
+            </tr>
+            <tr v-else-if="error">
+              <td colspan="6" class="px-6 py-8 text-center">
+                <div class="text-red-500 flex flex-col items-center">
+                  <svg class="h-10 w-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p class="mt-2">{{ error }}</p>
                 </div>
-              </div>
-              <div class="flex items-center space-x-2">
-                <router-link :to="`/messages/${message.id}`" class="btn btn-secondary btn-sm">
-                  View Details
-                </router-link>
-                <button @click="editMessage(message)" class="btn btn-secondary btn-sm">
-                  Edit
-                </button>
-                <button 
-                  v-if="message.status === 'draft'" 
-                  @click="publishMessage(message.id)" 
-                  class="btn btn-primary btn-sm"
-                >
-                  Publish
-                </button>
-              </div>
-            </div>
-          </li>
-        </ul>
+              </td>
+            </tr>
+            <tr v-else-if="filteredMessages.length === 0">
+              <td colspan="6" class="px-6 py-8 text-center">
+                <div class="text-gray-500 flex flex-col items-center">
+                  <svg class="h-10 w-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <p class="mt-2">No messages found</p>
+                </div>
+              </td>
+            </tr>
+            <tr v-for="message in filteredMessages" :key="message.id" class="hover:bg-gray-50 transition-colors duration-150">
+              <td>
+                <div class="font-medium text-gray-900">{{ message.subject }}</div>
+                <div class="text-sm text-gray-500">{{ truncate(message.text, 60) }}</div>
+              </td>
+              <td>
+                <span class="badge badge-secondary">
+                  {{ message.type || 'system' }}
+                </span>
+              </td>
+              <td>
+                <span :class="message.status === 'published' ? 'badge-success' : 'badge-warning'" class="badge">
+                  {{ message.status }}
+                </span>
+              </td>
+              <td class="text-sm text-gray-500">
+                {{ message.channels?.join(', ') || 'app' }}
+              </td>
+              <td class="text-sm text-gray-500">
+                {{ formatDate(message.createdAt) }}
+              </td>
+              <td>
+                <div class="flex items-center space-x-1">
+                  <router-link :to="`/messages/${message.id}`" 
+                               class="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="View Details">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </router-link>
+                  <button @click="editMessage(message)" 
+                          class="p-2 text-primary-600 hover:bg-primary-50 rounded transition-colors" title="Edit">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button v-if="message.status === 'draft'" 
+                          @click="publishMessage(message.id)" 
+                          class="p-2 text-green-600 hover:bg-green-50 rounded transition-colors" title="Publish">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Create/Edit Modal -->
@@ -141,7 +210,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, onMounted, computed } from 'vue';
 import { api } from '@/services/api';
 import Layout from '@/components/Layout.vue';
 
@@ -151,6 +220,9 @@ export default defineComponent({
   setup() {
     const messages = ref<any[]>([]);
     const countries = ref<any[]>([]);
+    const searchQuery = ref('');
+    const isLoading = ref(false);
+    const error = ref<string | null>(null);
     const showCreateModal = ref(false);
     const showEditModal = ref(false);
     const formSubmitting = ref(false);
@@ -164,13 +236,35 @@ export default defineComponent({
       status: 'draft'
     });
 
+    const filteredMessages = computed(() => {
+      if (!messages.value) return [];
+      if (!searchQuery.value) return messages.value;
+      
+      const query = searchQuery.value.toLowerCase();
+      return messages.value.filter(message => 
+        message.subject.toLowerCase().includes(query) || 
+        message.text.toLowerCase().includes(query) ||
+        (message.type?.toLowerCase().includes(query)) ||
+        (message.status?.toLowerCase().includes(query))
+      );
+    });
+
     const loadMessages = async () => {
       try {
+        isLoading.value = true;
+        error.value = null;
         const response = await api.get('/messages');
         messages.value = response.data;
-      } catch (error) {
-        console.error('Failed to load messages:', error);
+      } catch (err: any) {
+        error.value = err.response?.data?.message || 'Failed to load messages';
+        console.error('Failed to load messages:', err);
+      } finally {
+        isLoading.value = false;
       }
+    };
+    
+    const truncate = (text: string, length: number) => {
+      return text.length > length ? text.substring(0, length) + '...' : text;
     };
 
     const loadCountries = async () => {
@@ -249,6 +343,10 @@ export default defineComponent({
     return {
       messages,
       countries,
+      searchQuery,
+      isLoading,
+      error,
+      filteredMessages,
       showCreateModal,
       showEditModal,
       formSubmitting,
@@ -258,7 +356,8 @@ export default defineComponent({
       updateMessage,
       publishMessage,
       closeModal,
-      formatDate
+      formatDate,
+      truncate
     };
   }
 });

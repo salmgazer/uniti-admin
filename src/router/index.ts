@@ -33,6 +33,24 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/message-templates',
+    name: 'MessageTemplates',
+    component: () => import('@/views/MessageTemplates.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/message-templates/create',
+    name: 'CreateMessageTemplate',
+    component: () => import('@/views/CreateMessageTemplate.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/message-templates/:id/edit',
+    name: 'EditMessageTemplate',
+    component: () => import('@/views/EditMessageTemplate.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/goal-categories',
     name: 'GoalCategories',
     component: () => import('@/views/GoalCategories.vue'),

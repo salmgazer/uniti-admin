@@ -52,6 +52,11 @@ export const endpoints = {
   
   // Stats
   stats: '/stats',
+  
+  // Message Templates
+  messageTemplates: '/message-templates',
+  messageTemplate: (id: string) => `/message-templates/${id}`,
+  sendTemplateMessage: '/message-templates/send',
 };
 
 // Types
@@ -143,4 +148,17 @@ export interface LoginCredentials {
 export interface LoginResponse {
   token: string;
   admin: AdminUser;
+}
+
+export interface MessageTemplate {
+  id: string;
+  title: string;
+  subject: string;
+  content: string;
+  category?: string;
+  translations?: Record<string, string>;
+  subjectTranslations?: Record<string, string>;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }

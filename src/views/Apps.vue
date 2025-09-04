@@ -2,26 +2,39 @@
   <Layout pageTitle="Apps">
     <div class="mb-6 flex justify-between items-center">
       <h2 class="text-xl font-semibold">App Management</h2>
-      <div class="flex space-x-2">
-        <select v-model="countryFilter" class="input">
-          <option value="">All Countries</option>
-          <option v-for="country in uniqueCountries" :key="country" :value="country">
-            {{ country }}
-          </option>
-        </select>
-        <input 
-          v-model="searchQuery" 
-          type="text" 
-          placeholder="Search apps..." 
-          class="input"
-        />
-        <button @click="showCreateModal = true" class="btn btn-primary">
+      <div class="flex items-center space-x-3">
+        <div class="relative">
+          <select v-model="countryFilter" class="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+            <option value="">All Countries</option>
+            <option v-for="country in uniqueCountries" :key="country" :value="country">
+              {{ country }}
+            </option>
+          </select>
+          <svg class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input 
+            v-model="searchQuery" 
+            type="text" 
+            placeholder="Search apps..." 
+            class="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent w-64"
+          />
+        </div>
+        <button @click="showCreateModal = true" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
           Add App
         </button>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       <div v-if="isLoading" class="col-span-full flex justify-center items-center h-64">
         <p class="text-gray-500">Loading apps...</p>
       </div>
@@ -30,55 +43,59 @@
         {{ error }}
       </div>
       
-      <div v-else-if="filteredApps.length === 0" class="col-span-full flex justify-center items-center h-64">
+      <div v-else-if="apps.length === 0" class="col-span-full flex justify-center items-center h-64">
         <p class="text-gray-500">No apps found</p>
       </div>
       
-      <div v-for="app in filteredApps" :key="app.id" class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="h-40 bg-gray-200 flex items-center justify-center">
-          <img v-if="app.imageUrl" :src="app.imageUrl" class="h-full w-full object-cover" alt="" />
-          <div v-else class="text-4xl text-gray-400">
-            {{ app.title.charAt(0).toUpperCase() }}
+      <div v-for="app in apps" :key="app.id" class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+        <div class="relative">
+          <div class="h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-xl flex items-center justify-center">
+            <img v-if="app.imageUrl" :src="app.imageUrl" class="h-16 w-16 object-cover rounded-lg" alt="" />
+            <div v-else class="h-16 w-16 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600 font-semibold text-xl">
+              {{ app.title.charAt(0).toUpperCase() }}
+            </div>
           </div>
+          <span v-if="app.countryCode" class="absolute top-2 right-2 px-1.5 py-0.5 text-xs font-medium rounded bg-white/80 text-gray-700">
+            {{ app.countryCode }}
+          </span>
         </div>
-        <div class="p-4">
-          <div class="flex justify-between items-start">
-            <h3 class="text-lg font-medium text-gray-900">{{ app.title }}</h3>
-            <span v-if="app.countryCode" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-              {{ app.countryCode }}
-            </span>
-          </div>
-          <p class="mt-1 text-sm text-gray-500">{{ truncate(app.description || '', 100) }}</p>
-          <p class="mt-2 text-xs text-gray-500">App ID: {{ app.appId }}</p>
+        
+        <div class="p-3">
+          <h3 class="font-semibold text-gray-900 text-sm truncate" :title="app.title">{{ app.title }}</h3>
+          <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ app.description || 'No description' }}</p>
           
           <div v-if="app.goalCategory" class="mt-2">
-            <p class="text-xs text-gray-500">Related Category:</p>
-            <div class="flex items-center mt-1">
-              <span 
-                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full mr-2"
-                :class="{
-                  'bg-blue-100 text-blue-800': app.goalCategory.name === 'education',
-                  'bg-green-100 text-green-800': app.goalCategory.name === 'financial',
-                  'bg-purple-100 text-purple-800': app.goalCategory.name === 'health',
-                  'bg-yellow-100 text-yellow-800': app.goalCategory.name === 'work'
-                }"
-              >
-                {{ app.goalCategory.name }}
-              </span>
-            </div>
+            <span 
+              class="inline-flex px-2 py-1 text-xs font-medium rounded-full"
+              :class="{
+                'bg-blue-100 text-blue-700': app.goalCategory.name === 'education',
+                'bg-green-100 text-green-700': app.goalCategory.name === 'financial',
+                'bg-purple-100 text-purple-700': app.goalCategory.name === 'health',
+                'bg-yellow-100 text-yellow-700': app.goalCategory.name === 'work'
+              }"
+            >
+              {{ app.goalCategory.name }}
+            </span>
           </div>
           
-          <div class="mt-4 flex justify-between">
-            <div>
-              <button @click="editApp(app)" class="text-sm text-primary-600 hover:text-primary-900 mr-3">
-                Edit
+          <div class="mt-3 flex items-center justify-between">
+            <div class="flex space-x-1">
+              <button @click="editApp(app)" class="p-1.5 text-primary-600 hover:bg-primary-50 rounded transition-colors" title="Edit">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
               </button>
-              <button @click="confirmDelete(app)" class="text-sm text-red-600 hover:text-red-900">
-                Delete
+              <button @click="confirmDelete(app)" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
               </button>
             </div>
-            <router-link :to="`/apps/${app.id}`" class="text-sm text-primary-600 hover:text-primary-900">
-              View Details
+            <router-link :to="`/apps/${app.id}`" class="p-1.5 text-gray-600 hover:bg-gray-50 rounded transition-colors" title="View Details">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
             </router-link>
           </div>
         </div>
@@ -86,60 +103,87 @@
     </div>
 
     <!-- Create/Edit Modal -->
-    <div v-if="showCreateModal || showEditModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">
-            {{ showEditModal ? 'Edit App' : 'Create App' }}
-          </h3>
+    <div v-if="showCreateModal || showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xl font-semibold text-gray-900">
+              {{ showEditModal ? 'Edit App' : 'Create New App' }}
+            </h3>
+            <button @click="closeModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <div class="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          <form @submit.prevent="showEditModal ? updateApp() : createApp()" class="space-y-5">
           
-          <form @submit.prevent="showEditModal ? updateApp() : createApp()">
-            <div class="space-y-4">
-            <div>
-              <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
-              <input 
-                id="title" 
-                v-model="formData.title" 
-                type="text" 
-                required 
-                class="input mt-1"
-              />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Title <span class="text-red-500">*</span></label>
+                <input 
+                  id="title" 
+                  v-model="formData.title" 
+                  type="text" 
+                  required 
+                  class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Enter app title"
+                />
+              </div>
+              
+              <div>
+                <label for="appId" class="block text-sm font-medium text-gray-700 mb-2">App ID <span class="text-red-500">*</span></label>
+                <input 
+                  id="appId" 
+                  v-model="formData.appId" 
+                  type="text" 
+                  required 
+                  class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="com.example.app"
+                />
+              </div>
             </div>
             
             <div>
-              <label for="appId" class="block text-sm font-medium text-gray-700">App ID</label>
-              <input 
-                id="appId" 
-                v-model="formData.appId" 
-                type="text" 
-                required 
-                class="input mt-1"
-              />
-            </div>
-            
-            <div>
-              <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+              <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <textarea 
                 id="description" 
                 v-model="formData.description" 
                 rows="3" 
-                class="input mt-1"
+                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                placeholder="Brief description of the app"
               ></textarea>
             </div>
             
-            <div>
-              <label for="imageUrl" class="block text-sm font-medium text-gray-700">Image URL</label>
-              <input 
-                id="imageUrl" 
-                v-model="formData.imageUrl" 
-                type="text" 
-                class="input mt-1"
-              />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="imageUrl" class="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
+                <input 
+                  id="imageUrl" 
+                  v-model="formData.imageUrl" 
+                  type="url" 
+                  class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="https://example.com/image.png"
+                />
+              </div>
+              
+              <div>
+                <label for="countryCode" class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                <select id="countryCode" v-model="formData.countryCode" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                  <option value="">No country</option>
+                  <option v-for="country in countries" :key="country.code" :value="country.code">
+                    {{ country.name }}
+                  </option>
+                </select>
+              </div>
             </div>
             
             <div>
-              <label for="goalCategoryId" class="block text-sm font-medium text-gray-700">Goal Category</label>
-              <select id="goalCategoryId" v-model="formData.goalCategoryId" @change="onCategoryChange" class="input mt-1" required>
+              <label for="goalCategoryId" class="block text-sm font-medium text-gray-700 mb-2">Goal Category <span class="text-red-500">*</span></label>
+              <select id="goalCategoryId" v-model="formData.goalCategoryId" @change="onCategoryChange" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
                 <option value="" disabled>Select a category</option>
                 <option v-for="category in goalCategories" :key="category.id" :value="category.id">
                   {{ category.name }}
@@ -147,19 +191,21 @@
               </select>
             </div>
             
-            <div>
+            <div v-if="filteredGoalSubCategories.length > 0">
               <label class="block text-sm font-medium text-gray-700 mb-2">Goal Sub Categories</label>
-              <div class="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
-                <label v-for="subCategory in filteredGoalSubCategories" :key="subCategory.id" class="flex items-center">
-                  <input 
-                    type="checkbox" 
-                    :value="subCategory.id" 
-                    v-model="formData.goalSubCategoryIds" 
-                    @change="updateAvailableGoals"
-                    class="mr-2"
-                  />
-                  <span class="text-sm">{{ subCategory.name }}</span>
-                </label>
+              <div class="max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+                <div class="space-y-2">
+                  <label v-for="subCategory in filteredGoalSubCategories" :key="subCategory.id" class="flex items-center cursor-pointer hover:bg-white rounded px-2 py-1 transition-colors">
+                    <input 
+                      type="checkbox" 
+                      :value="subCategory.id" 
+                      v-model="formData.goalSubCategoryIds" 
+                      @change="updateAvailableGoals"
+                      class="mr-3 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span class="text-sm text-gray-700">{{ subCategory.name }}</span>
+                  </label>
+                </div>
               </div>
             </div>
             
@@ -177,16 +223,7 @@
                 </label>
               </div>
             </div>
-            
-            <div>
-              <label for="countryCode" class="block text-sm font-medium text-gray-700">Country</label>
-              <select id="countryCode" v-model="formData.countryCode" class="input mt-1">
-                <option value="">No country</option>
-                <option v-for="country in countries" :key="country.code" :value="country.code">
-                  {{ country.name }}
-                </option>
-              </select>
-            </div>
+
             
             <!-- Audio Files Section -->
             <div>
@@ -225,27 +262,36 @@
                 </button>
               </div>
             </div>
-            </div>
-            
-            <div class="mt-6 flex justify-end space-x-3">
-              <button 
-                type="button" 
-                @click="closeModal" 
-                class="btn btn-secondary"
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                class="btn btn-primary"
-                :disabled="formSubmitting"
-              >
-                {{ showEditModal ? 'Update' : 'Create' }}
-              </button>
-            </div>
           </form>
         </div>
+        
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3">
+          <button 
+            type="button" 
+            @click="closeModal" 
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            @click="showEditModal ? updateApp() : createApp()"
+            class="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+            :disabled="formSubmitting"
+          >
+            <span v-if="formSubmitting" class="inline-flex items-center">
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ showEditModal ? 'Updating...' : 'Creating...' }}
+            </span>
+            <span v-else>
+              {{ showEditModal ? 'Update App' : 'Create App' }}
+            </span>
+          </button>
       </div>
+    </div>
     </div>
 
     <!-- Delete Confirmation Modal -->
@@ -279,8 +325,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, reactive, onMounted } from 'vue';
-import swrv from 'swrv';
+import { defineComponent, ref, computed, reactive, onMounted, watch } from 'vue';
 import { api, endpoints, App, Country, Language, AppAudio } from '@/services/api';
 import Layout from '@/components/Layout.vue';
 
@@ -292,11 +337,9 @@ export default defineComponent({
   setup() {
     const searchQuery = ref('');
     const countryFilter = ref('');
-    
-    const { data: apps, error, isValidating: isLoading, mutate } = swrv<App[]>(
-      endpoints.apps,
-      () => api.get(endpoints.apps).then(res => res.data)
-    );
+    const apps = ref<App[]>([]);
+    const isLoading = ref(false);
+    const error = ref<string | null>(null);
     
     const goalCategories = ref<any[]>([]);
     const countries = ref<Country[]>([]);
@@ -359,6 +402,23 @@ export default defineComponent({
       loadLanguages();
     });
     
+    const fetchApps = async () => {
+      try {
+        isLoading.value = true;
+        error.value = null;
+        const params: any = {};
+        if (searchQuery.value) params.search = searchQuery.value;
+        if (countryFilter.value) params.country = countryFilter.value;
+        
+        const response = await api.get(endpoints.apps, { params });
+        apps.value = response.data;
+      } catch (err: any) {
+        error.value = err.response?.data?.message || 'Failed to fetch apps';
+      } finally {
+        isLoading.value = false;
+      }
+    };
+    
     const uniqueCountries = computed(() => {
       if (!apps.value) return [];
       
@@ -369,25 +429,17 @@ export default defineComponent({
       return [...new Set(countryCodes)];
     });
     
-    const filteredApps = computed(() => {
-      if (!apps.value) return [];
-      
-      return apps.value.filter(app => {
-        // Apply country filter
-        if (countryFilter.value && app.countryCode !== countryFilter.value) {
-          return false;
-        }
-        
-        // Apply search query
-        if (searchQuery.value) {
-          const query = searchQuery.value.toLowerCase();
-          return app.title.toLowerCase().includes(query) || 
-                 app.appId.toLowerCase().includes(query) ||
-                 (app.description?.toLowerCase().includes(query) || false);
-        }
-        
-        return true;
-      });
+    // Debounced search
+    let searchTimeout: NodeJS.Timeout;
+    watch([searchQuery, countryFilter], () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        fetchApps();
+      }, 300);
+    });
+    
+    onMounted(() => {
+      fetchApps();
     });
     
     const showCreateModal = ref(false);
@@ -480,7 +532,7 @@ export default defineComponent({
           });
         }
         
-        await mutate();
+        await fetchApps();
         closeModal();
       } catch (err) {
         console.error('Failed to create app:', err);
@@ -512,7 +564,7 @@ export default defineComponent({
           goalIds: formData.goalIds
         });
         
-        await mutate();
+        await fetchApps();
         closeModal();
       } catch (err) {
         console.error('Failed to update app:', err);
@@ -533,7 +585,7 @@ export default defineComponent({
         formSubmitting.value = true;
         await api.delete(endpoints.app(appToDelete.value.id));
         
-        await mutate();
+        await fetchApps();
         showDeleteModal.value = false;
         appToDelete.value = null;
       } catch (err) {
@@ -631,7 +683,6 @@ export default defineComponent({
       searchQuery,
       countryFilter,
       uniqueCountries,
-      filteredApps,
       goalCategories,
       filteredGoalSubCategories,
       goals,

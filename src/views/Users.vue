@@ -15,7 +15,7 @@
           v-model="searchQuery" 
           type="text" 
           placeholder="Search users..." 
-          class="input pl-10 bg-white shadow-sm border-gray-200 focus:border-primary-500"
+          class="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white shadow-sm"
         />
       </div>
     </div>
@@ -88,7 +88,7 @@
               </span>
             </td>
             <td>
-              <router-link :to="`/users/${user.id}`" class="btn-primary text-sm py-1.5 px-3">
+              <router-link :to="`/users/${user.id}`" class="inline-flex items-center px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
                 View Details
               </router-link>
             </td>
