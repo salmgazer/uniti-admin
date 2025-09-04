@@ -142,7 +142,7 @@
                   <input 
                     v-model="userSearch" 
                     @focus="showUserDropdown = true"
-                    @blur="setTimeout(() => showUserDropdown = false, 200)"
+                    @blur="handleBlur"
                     type="text" 
                     placeholder="Search users..."
                     class="input w-full"
@@ -208,7 +208,6 @@
 
 <script lang="ts">
 import { defineComponent, ref, reactive, onMounted, watch, computed } from 'vue';
-import swrv from 'swrv';
 import { api, endpoints, MessageTemplate } from '@/services/api';
 import Layout from '@/components/Layout.vue';
 
@@ -361,6 +360,10 @@ export default defineComponent({
       return text.length > length ? text.substring(0, length) + '...' : text;
     };
     
+    const handleBlur = () => {
+      setTimeout(() => showUserDropdown.value = false, 200);
+    };
+    
     return {
       templates,
       error,
@@ -382,7 +385,8 @@ export default defineComponent({
       sendTemplateMessage,
       toggleUser,
       removeUser,
-      truncate
+      truncate,
+      handleBlur
     };
   }
 });

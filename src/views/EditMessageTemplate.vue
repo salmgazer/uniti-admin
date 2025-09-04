@@ -159,8 +159,8 @@ export default defineComponent({
         formData.subject = template.value.subject;
         formData.content = template.value.content;
         formData.category = template.value.category || '';
-        formData.translations = { ...template.value.translations } || {};
-        formData.subjectTranslations = { ...template.value.subjectTranslations } || {};
+        formData.translations = template.value.translations ? { ...template.value.translations } : {};
+        formData.subjectTranslations = template.value.subjectTranslations ? { ...template.value.subjectTranslations } : {};
         formData.isActive = template.value.isActive;
       }
     });
@@ -172,8 +172,8 @@ export default defineComponent({
         formData.subject = template.value.subject;
         formData.content = template.value.content;
         formData.category = template.value.category || '';
-        formData.translations = { ...template.value.translations } || {};
-        formData.subjectTranslations = { ...template.value.subjectTranslations } || {};
+        formData.translations = template.value.translations ? { ...template.value.translations } : {};
+        formData.subjectTranslations = template.value.subjectTranslations ? { ...template.value.subjectTranslations } : {};
         formData.isActive = template.value.isActive;
       }
     };
