@@ -67,7 +67,6 @@ export default defineComponent({
   setup() {
     const audios = ref<AudioFile[]>([]);
     const languages = ref<Language[]>([]);
-    const uploading = ref(false);
     
     const screens = [
       { value: 'HomeGoalsScreen', label: 'Home Goals', description: 'Audio guide for the goals screen' },
