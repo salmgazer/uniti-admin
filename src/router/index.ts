@@ -93,6 +93,18 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/app-settings',
+    name: 'AppSettings',
+    component: () => import('@/views/AppSettings.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/app-settings/:screenName',
+    name: 'AppScreenDetail',
+    component: () => import('@/views/AppScreenDetail.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/Login.vue')
