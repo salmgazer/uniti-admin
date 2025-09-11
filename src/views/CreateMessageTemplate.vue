@@ -180,6 +180,7 @@ export default defineComponent({
       category: '',
       videoUrls: { en: '' } as Record<string, string>,
       audioUrls: { en: '' } as Record<string, string>,
+      audioFiles: {} as Record<string, File>,
       translations: {} as Record<string, string>,
       subjectTranslations: {} as Record<string, string>,
       isActive: true
@@ -258,7 +259,7 @@ export default defineComponent({
         if (formData.audioFiles) {
           for (const [lang, file] of Object.entries(formData.audioFiles)) {
             const audioFormData = new FormData();
-            audioFormData.append('audioFile', file);
+            audioFormData.append('audioFile', file as File);
             await api.post(`${endpoints.messageTemplates}/${response.data.id}/upload-audio/${lang}`, audioFormData, {
               headers: { 'Content-Type': 'multipart/form-data' }
             });

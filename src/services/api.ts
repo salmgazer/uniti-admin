@@ -156,6 +156,8 @@ export interface MessageTemplate {
   subject: string;
   content: string;
   category?: string;
+  videoUrls?: Record<string, string>;
+  audioUrls?: Record<string, string>;
   translations?: Record<string, string>;
   subjectTranslations?: Record<string, string>;
   isActive: boolean;
