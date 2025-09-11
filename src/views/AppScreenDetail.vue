@@ -128,10 +128,19 @@ export default defineComponent({
     const screenName = computed(() => route.params.screenName as string);
     
     const screenLabels: Record<string, string> = {
+      'WelcomeLanguageScreen': 'Welcome Language Audio',
+      'WelcomeSigninScreen': 'Welcome Sign In Audio',
+      'RegistrationPhoneNumberScreen': 'Registration Phone Audio',
+      'RegistrationVerificationCodeScreen': 'Registration Verification Audio',
+      'RegistrationUploadIdScreen': 'Registration Upload ID Audio',
+      'RegistrationSelfieScreen': 'Registration Selfie Audio',
+      'RegistrationGoalsScreen': 'Registration Goals Audio',
+      'RegistrationRecommendedAppsScreen': 'Registration Apps Audio',
+      'RegistrationPinSetupScreen': 'Registration PIN Setup Audio',
       'HomeGoalsScreen': 'Home Goals Audio',
       'HomeMessagesScreen': 'Home Messages Audio',
       'HomeProfileScreen': 'Home Profile Audio',
-      'HomeRecommendationsScreen': 'Home Recommendations Audio'
+      'HomeSupportScreen': 'Home Support Audio'
     };
     
     const screenLabel = computed(() => screenLabels[screenName.value] || screenName.value);

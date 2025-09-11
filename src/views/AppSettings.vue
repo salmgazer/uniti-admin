@@ -69,10 +69,19 @@ export default defineComponent({
     const languages = ref<Language[]>([]);
     
     const screens = [
+      { value: 'WelcomeLanguageScreen', label: 'Welcome Language', description: 'Audio guide for language selection' },
+      { value: 'WelcomeSigninScreen', label: 'Welcome Sign In', description: 'Audio guide for the sign in screen' },
+      { value: 'RegistrationPhoneNumberScreen', label: 'Registration Phone', description: 'Audio guide for phone number entry' },
+      { value: 'RegistrationVerificationCodeScreen', label: 'Registration Verification', description: 'Audio guide for code verification' },
+      { value: 'RegistrationUploadIdScreen', label: 'Registration Upload ID', description: 'Audio guide for ID upload' },
+      { value: 'RegistrationSelfieScreen', label: 'Registration Selfie', description: 'Audio guide for selfie capture' },
+      { value: 'RegistrationGoalsScreen', label: 'Registration Goals', description: 'Audio guide for goals selection' },
+      { value: 'RegistrationRecommendedAppsScreen', label: 'Registration Apps', description: 'Audio guide for app recommendations' },
+      { value: 'RegistrationPinSetupScreen', label: 'Registration PIN Setup', description: 'Audio guide for PIN setup' },
       { value: 'HomeGoalsScreen', label: 'Home Goals', description: 'Audio guide for the goals screen' },
       { value: 'HomeMessagesScreen', label: 'Home Messages', description: 'Audio guide for the messages screen' },
       { value: 'HomeProfileScreen', label: 'Home Profile', description: 'Audio guide for the profile screen' },
-      { value: 'HomeRecommendationsScreen', label: 'Home Recommendations', description: 'Audio guide for the recommendations screen' }
+      { value: 'HomeSupportScreen', label: 'Home Support', description: 'Audio guide for the support screen' }
     ];
 
     const loadAudios = async () => {

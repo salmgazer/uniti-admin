@@ -22,6 +22,9 @@
       </router-link>
     </nav>
     <div class="p-4 border-t border-gray-700/50">
+      <div class="text-center text-xs text-gray-400 mb-3">
+        v{{ version }}
+      </div>
       <button @click="logout" class="w-full py-2.5 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-white transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center">
         <span class="mr-2">⟲</span>
         <span>Logout</span>
@@ -34,6 +37,7 @@
 import { defineComponent } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuth } from '@/services/auth';
+import packageJson from '../../package.json';
 
 export default defineComponent({
   name: 'Sidebar',
@@ -87,7 +91,8 @@ export default defineComponent({
       menuItems,
       isActive,
       logout,
-      getMenuIcon
+      getMenuIcon,
+      version: packageJson.version
     };
   }
 });

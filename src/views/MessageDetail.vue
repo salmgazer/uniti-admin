@@ -42,10 +42,6 @@
                 <p class="mt-1">{{ message.from }}</p>
               </div>
               <div>
-                <p class="text-sm font-medium text-gray-500">Type</p>
-                <p class="mt-1 capitalize">{{ message.type }}</p>
-              </div>
-              <div>
                 <p class="text-sm font-medium text-gray-500">Message</p>
                 <p class="mt-1 whitespace-pre-wrap">{{ message.text }}</p>
               </div>
@@ -53,32 +49,27 @@
           </div>
           
           <div>
-            <h3 class="text-lg font-medium text-gray-900 mb-3">Targeting & Channels</h3>
-            <div class="space-y-3">
-              <div>
-                <p class="text-sm font-medium text-gray-500">Countries</p>
-                <div class="mt-1 flex flex-wrap gap-1">
-                  <span 
-                    v-for="code in message.countryCodes" 
-                    :key="code"
-                    class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                  >
-                    {{ code }}
-                  </span>
+            <h3 class="text-lg font-medium text-gray-900 mb-3">Media & Details</h3>
+            <div class="space-y-4">
+              <div v-if="message.videoUrl">
+                <p class="text-sm font-medium text-gray-500 mb-2">Video</p>
+                <iframe :src="getYouTubeEmbedUrl(message.videoUrl)" 
+                        class="w-full h-48 rounded-lg" frameborder="0" allowfullscreen></iframe>
+              </div>
+              
+              <div v-if="message.audioUrl">
+                <p class="text-sm font-medium text-gray-500 mb-2">Audio</p>
+                <div class="p-3 bg-gray-50 rounded-lg">
+                  <audio controls class="w-full">
+                    <source :src="message.audioUrl" type="audio/mpeg">
+                  </audio>
                 </div>
               </div>
-              <div>
-                <p class="text-sm font-medium text-gray-500">Channels</p>
-                <div class="mt-1 flex flex-wrap gap-1">
-                  <span 
-                    v-for="channel in message.channels" 
-                    :key="channel"
-                    class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
-                  >
-                    {{ channel }}
-                  </span>
-                </div>
+              
+              <div v-if="!message.videoUrl && !message.audioUrl">
+                <p class="text-sm text-gray-500 italic">No media attached</p>
               </div>
+              
               <div>
                 <p class="text-sm font-medium text-gray-500">Created</p>
                 <p class="mt-1">{{ formatDate(message.createdAt) }}</p>
@@ -201,6 +192,12 @@ export default defineComponent({
       return new Date(dateString).toLocaleDateString();
     };
     
+    const getYouTubeEmbedUrl = (url: string) => {
+      if (!url) return '';
+      const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+      return videoId ? `https://www.youtube.com/embed/${videoId[1]}` : '';
+    };
+    
     onMounted(() => {
       loadInteractions();
     });
@@ -211,7 +208,8 @@ export default defineComponent({
       error,
       isLoading,
       publishMessage,
-      formatDate
+      formatDate,
+      getYouTubeEmbedUrl
     };
   }
 });

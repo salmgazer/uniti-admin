@@ -63,6 +63,35 @@
             <p v-if="errors.content" class="mt-1 text-sm text-red-600">{{ errors.content }}</p>
           </div>
           
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Video URL (English)</label>
+              <input v-model="formData.videoUrls.en" type="url" class="input mt-1" 
+                     placeholder="https://www.youtube.com/watch?v=..." />
+              <div v-if="formData.videoUrls.en" class="mt-3">
+                <iframe :src="getYouTubeEmbedUrl(formData.videoUrls.en)" 
+                        class="w-full h-48 rounded-lg" frameborder="0" allowfullscreen></iframe>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Audio File (English)</label>
+              <div class="space-y-2">
+                <input type="file" accept="audio/*" @change="(e) => handleAudioUpload(e, 'en')" class="input" />
+                <div v-if="formData.audioUrls.en" class="p-3 bg-gray-50 rounded-lg">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-700">Audio Preview</span>
+                    <button type="button" @click="removeAudio('en')" 
+                            class="text-sm text-red-600 hover:text-red-800">Remove</button>
+                  </div>
+                  <audio controls class="w-full">
+                    <source :src="formData.audioUrls.en" type="audio/mpeg">
+                  </audio>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-3">Translations</label>
             <div v-for="lang in getTranslationLanguages()" :key="lang" class="mb-4 p-4 border border-gray-200 rounded-lg">
@@ -83,6 +112,31 @@
                   <textarea v-model="formData.translations[lang]" rows="3" class="input" 
                             :placeholder="`${lang.toUpperCase()} content translation`"></textarea>
                 </div>
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Video URL</label>
+                    <input v-model="formData.videoUrls[lang]" type="url" class="input" 
+                           :placeholder="`${lang.toUpperCase()} YouTube URL`" />
+                    <div v-if="formData.videoUrls[lang]" class="mt-2">
+                      <iframe :src="getYouTubeEmbedUrl(formData.videoUrls[lang])" 
+                              class="w-full h-32 rounded" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Audio File</label>
+                    <input type="file" accept="audio/*" @change="(e) => handleAudioUpload(e, lang)" class="input" />
+                    <div v-if="formData.audioUrls[lang]" class="mt-2 p-2 bg-gray-50 rounded">
+                      <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-medium text-gray-700">Audio Preview</span>
+                        <button type="button" @click="removeAudio(lang)" 
+                                class="text-xs text-red-600 hover:text-red-800">Remove</button>
+                      </div>
+                      <audio controls class="w-full h-8">
+                        <source :src="formData.audioUrls[lang]" type="audio/mpeg">
+                      </audio>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             
@@ -96,6 +150,8 @@
               <button type="button" @click="addTranslation" class="btn btn-secondary">Add</button>
             </div>
           </div>
+          
+
           
           <div class="flex items-center">
             <input v-model="formData.isActive" type="checkbox" class="mr-2" />
@@ -141,6 +197,8 @@ export default defineComponent({
       subject: '',
       content: '',
       category: '',
+      videoUrls: { en: '' } as Record<string, string>,
+      audioUrls: { en: '' } as Record<string, string>,
       translations: {} as Record<string, string>,
       subjectTranslations: {} as Record<string, string>,
       isActive: true
@@ -159,6 +217,8 @@ export default defineComponent({
         formData.subject = template.value.subject;
         formData.content = template.value.content;
         formData.category = template.value.category || '';
+        formData.videoUrls = template.value.videoUrls ? { ...template.value.videoUrls } : { en: '' };
+        formData.audioUrls = template.value.audioUrls ? { ...template.value.audioUrls } : { en: '' };
         formData.translations = template.value.translations ? { ...template.value.translations } : {};
         formData.subjectTranslations = template.value.subjectTranslations ? { ...template.value.subjectTranslations } : {};
         formData.isActive = template.value.isActive;
@@ -172,6 +232,8 @@ export default defineComponent({
         formData.subject = template.value.subject;
         formData.content = template.value.content;
         formData.category = template.value.category || '';
+        formData.videoUrls = template.value.videoUrls ? { ...template.value.videoUrls } : { en: '' };
+        formData.audioUrls = template.value.audioUrls ? { ...template.value.audioUrls } : { en: '' };
         formData.translations = template.value.translations ? { ...template.value.translations } : {};
         formData.subjectTranslations = template.value.subjectTranslations ? { ...template.value.subjectTranslations } : {};
         formData.isActive = template.value.isActive;
@@ -212,6 +274,48 @@ export default defineComponent({
       return !errors.title && !errors.subject && !errors.content;
     };
     
+    const handleAudioUpload = async (event: Event, languageCode: string) => {
+      const target = event.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (!file) return;
+      
+      try {
+        const audioFormData = new FormData();
+        audioFormData.append('audioFile', file);
+        const response = await api.post(`${endpoints.messageTemplates}/${templateId}/upload-audio/${languageCode}`, audioFormData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
+        // Update form data with new audio URL
+        if (!formData.audioUrls) formData.audioUrls = {};
+        formData.audioUrls[languageCode] = response.data.audioUrls[languageCode];
+        
+        // Clear the file input
+        target.value = '';
+      } catch (error) {
+        console.error('Audio upload failed:', error);
+        alert('Failed to upload audio');
+      }
+    };
+    
+    const removeAudio = async (languageCode: string) => {
+      formData.audioUrls[languageCode] = '';
+      
+      // Update the template on server
+      try {
+        await api.patch(endpoints.messageTemplate(templateId), {
+          audioUrls: formData.audioUrls
+        });
+      } catch (error) {
+        console.error('Failed to remove audio:', error);
+      }
+    };
+    
+    const getAudioFileName = (languageCode: string) => {
+      if (!formData.audioUrls[languageCode]) return '';
+      return formData.audioUrls[languageCode].split('/').pop() || 'Audio file';
+    };
+    
     const updateTemplate = async () => {
       if (!validateForm()) return;
       
@@ -222,6 +326,8 @@ export default defineComponent({
           subject: formData.subject,
           content: formData.content,
           category: formData.category,
+          videoUrls: formData.videoUrls,
+          audioUrls: formData.audioUrls,
           translations: formData.translations,
           subjectTranslations: formData.subjectTranslations,
           isActive: formData.isActive
@@ -235,6 +341,12 @@ export default defineComponent({
       }
     };
     
+    const getYouTubeEmbedUrl = (url: string) => {
+      if (!url) return '';
+      const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+      return videoId ? `https://www.youtube.com/embed/${videoId[1]}` : '';
+    };
+    
     return {
       template,
       error,
@@ -246,6 +358,10 @@ export default defineComponent({
       getTranslationLanguages,
       addTranslation,
       removeTranslation,
+      handleAudioUpload,
+      removeAudio,
+      getAudioFileName,
+      getYouTubeEmbedUrl,
       updateTemplate,
       updateFormData
     };

@@ -36,16 +36,15 @@
           <thead>
             <tr>
               <th>Subject</th>
-              <th>Type</th>
               <th>Status</th>
-              <th>Channels</th>
+              <th>Media</th>
               <th>Date</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="isLoading">
-              <td colspan="6" class="px-6 py-8 text-center">
+              <td colspan="5" class="px-6 py-8 text-center">
                 <div class="flex justify-center">
                   <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                 </div>
@@ -53,7 +52,7 @@
               </td>
             </tr>
             <tr v-else-if="error">
-              <td colspan="6" class="px-6 py-8 text-center">
+              <td colspan="5" class="px-6 py-8 text-center">
                 <div class="text-red-500 flex flex-col items-center">
                   <svg class="h-10 w-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -63,7 +62,7 @@
               </td>
             </tr>
             <tr v-else-if="filteredMessages.length === 0">
-              <td colspan="6" class="px-6 py-8 text-center">
+              <td colspan="5" class="px-6 py-8 text-center">
                 <div class="text-gray-500 flex flex-col items-center">
                   <svg class="h-10 w-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -78,17 +77,26 @@
                 <div class="text-sm text-gray-500">{{ truncate(message.text, 60) }}</div>
               </td>
               <td>
-                <span class="badge badge-secondary">
-                  {{ message.type || 'system' }}
-                </span>
-              </td>
-              <td>
                 <span :class="message.status === 'published' ? 'badge-success' : 'badge-warning'" class="badge">
                   {{ message.status }}
                 </span>
               </td>
-              <td class="text-sm text-gray-500">
-                {{ message.channels?.join(', ') || 'app' }}
+              <td>
+                <div class="flex items-center space-x-2">
+                  <span v-if="message.videoUrl" class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                    </svg>
+                    Video
+                  </span>
+                  <span v-if="message.audioUrl" class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM15.657 6.343a1 1 0 011.414 0A9.972 9.972 0 0119 12a9.972 9.972 0 01-1.929 5.657 1 1 0 11-1.414-1.414A7.971 7.971 0 0017 12c0-2.21-.896-4.21-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 12a5.983 5.983 0 01-.757 2.829 1 1 0 11-1.415-1.414A3.987 3.987 0 0014 12a3.987 3.987 0 00-.172-1.172 1 1 0 010-1.415z" clip-rule="evenodd"/>
+                    </svg>
+                    Audio
+                  </span>
+                  <span v-if="!message.videoUrl && !message.audioUrl" class="text-xs text-gray-400">None</span>
+                </div>
               </td>
               <td class="text-sm text-gray-500">
                 {{ formatDate(message.createdAt) }}
@@ -148,40 +156,13 @@
                 </div>
 
                 <div>
-                  <label class="block text-sm font-medium text-gray-700">Type</label>
-                  <select v-model="formData.type" class="input mt-1" required>
-                    <option value="system">System</option>
-                    <option value="coach">Coach</option>
-                  </select>
+                  <label class="block text-sm font-medium text-gray-700">Video URL</label>
+                  <input v-model="formData.videoUrl" type="url" class="input mt-1" placeholder="https://www.youtube.com/watch?v=...">
                 </div>
 
                 <div>
-                  <label class="block text-sm font-medium text-gray-700">Countries</label>
-                  <div class="mt-1 space-y-2 max-h-32 overflow-y-auto border rounded p-2">
-                    <label v-for="country in countries" :key="country.code" class="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        :value="country.code" 
-                        v-model="formData.countryCodes"
-                        class="mr-2"
-                      >
-                      {{ country.name }}
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Channels</label>
-                  <div class="mt-1 space-y-2">
-                    <label class="flex items-center">
-                      <input type="checkbox" value="app" v-model="formData.channels" class="mr-2" disabled checked>
-                      App (Always included)
-                    </label>
-                    <label class="flex items-center">
-                      <input type="checkbox" value="WhatsApp" v-model="formData.channels" class="mr-2">
-                      WhatsApp
-                    </label>
-                  </div>
+                  <label class="block text-sm font-medium text-gray-700">Audio URL</label>
+                  <input v-model="formData.audioUrl" type="url" class="input mt-1" placeholder="Audio file URL">
                 </div>
 
                 <div>
@@ -230,9 +211,8 @@ export default defineComponent({
       subject: '',
       text: '',
       from: '',
-      type: 'system',
-      channels: ['app'],
-      countryCodes: [],
+      videoUrl: '',
+      audioUrl: '',
       status: 'draft'
     });
 
@@ -324,9 +304,8 @@ export default defineComponent({
         subject: '',
         text: '',
         from: '',
-        type: 'system',
-        channels: ['app'],
-        countryCodes: [],
+        videoUrl: '',
+        audioUrl: '',
         status: 'draft'
       };
     };
