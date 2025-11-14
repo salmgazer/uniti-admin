@@ -3,10 +3,17 @@
     <div class="mb-6 flex justify-between items-center">
       <h2 class="text-xl font-semibold">App Management</h2>
       <div class="flex items-center space-x-3">
+        <SearchableDropdown
+          v-model="selectedGoalCategory"
+          :options="goalCategories"
+          :loading="loadingCategories"
+          placeholder="All Categories"
+          @search="searchCategories"
+        />
         <div class="relative">
           <select v-model="countryFilter" class="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
             <option value="">All Countries</option>
-            <option v-for="country in uniqueCountries" :key="country" :value="country">
+            <option v-for="country in uniqueCountries" :key="country as string" :value="country as string">
               {{ country }}
             </option>
           </select>
@@ -19,7 +26,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input 
-            v-model="searchQuery" 
+            v-model="localSearchQuery" 
             type="text" 
             placeholder="Search apps..." 
             class="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent w-64"
@@ -34,7 +41,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       <div v-if="isLoading" class="col-span-full flex justify-center items-center h-64">
         <p class="text-gray-500">Loading apps...</p>
       </div>
@@ -79,20 +86,20 @@
           </div>
           
           <div class="mt-3 flex items-center justify-between">
-            <div class="flex space-x-1">
-              <button @click="editApp(app)" class="p-1.5 text-primary-600 hover:bg-primary-50 rounded transition-colors" title="Edit">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex space-x-2">
+              <button @click="editApp(app)" class="p-2 text-primary-600 hover:bg-primary-100 rounded-lg transition-colors shadow-sm hover:shadow-md" title="Edit">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </button>
-              <button @click="confirmDelete(app)" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button @click="confirmDelete(app)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors shadow-sm hover:shadow-md" title="Delete">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
             </div>
-            <router-link :to="`/apps/${app.id}`" class="p-1.5 text-gray-600 hover:bg-gray-50 rounded transition-colors" title="View Details">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <router-link :to="`/apps/${app.id}`" class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors shadow-sm hover:shadow-md" title="View Details">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
@@ -101,6 +108,17 @@
         </div>
       </div>
     </div>
+    
+    <!-- Load More / Loading -->
+    <div v-if="!initialLoading && hasMore" class="mt-8 flex justify-center">
+      <div v-if="loadingMore" class="flex items-center text-gray-500">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mr-2"></div>
+        Loading more apps...
+      </div>
+    </div>
+    
+    <!-- Infinite Scroll Trigger -->
+    <div ref="loadMoreTrigger" class="h-4"></div>
 
     <!-- Create/Edit Modal -->
     <div v-if="showCreateModal || showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -171,24 +189,28 @@
               </div>
               
               <div>
-                <label for="countryCode" class="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                <select id="countryCode" v-model="formData.countryCode" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                  <option value="">No country</option>
-                  <option v-for="country in countries" :key="country.code" :value="country.code">
-                    {{ country.name }}
-                  </option>
-                </select>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                <SearchableDropdown
+                  v-model="selectedFormCountry"
+                  :options="countries"
+                  :loading="loadingCountries"
+                  placeholder="Select a country"
+                  option-label="name"
+                  option-value="code"
+                  @search="searchCountries"
+                />
               </div>
             </div>
             
             <div>
-              <label for="goalCategoryId" class="block text-sm font-medium text-gray-700 mb-2">Goal Category <span class="text-red-500">*</span></label>
-              <select id="goalCategoryId" v-model="formData.goalCategoryId" @change="onCategoryChange" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" required>
-                <option value="" disabled>Select a category</option>
-                <option v-for="category in goalCategories" :key="category.id" :value="category.id">
-                  {{ category.name }}
-                </option>
-              </select>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Goal Category <span class="text-red-500">*</span></label>
+              <SearchableDropdown
+                v-model="selectedFormCategory"
+                :options="goalCategories"
+                :loading="loadingCategories"
+                placeholder="Select a category"
+                @search="searchCategories"
+              />
             </div>
             
             <div v-if="filteredGoalSubCategories.length > 0">
@@ -325,37 +347,61 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, reactive, onMounted, watch } from 'vue';
-import { api, endpoints, App, Country, Language, AppAudio } from '@/services/api';
+import { defineComponent, ref, computed, reactive, onMounted, watch, nextTick, onUnmounted } from 'vue';
+import { api, endpoints, App, Country, Language, AppAudio, PaginatedResponse } from '@/services/api';
 import Layout from '@/components/Layout.vue';
+import SearchableDropdown from '@/components/SearchableDropdown.vue';
 
 export default defineComponent({
   name: 'Apps',
   components: {
-    Layout
+    Layout,
+    SearchableDropdown
   },
   setup() {
     const searchQuery = ref('');
+    const localSearchQuery = ref('');
     const countryFilter = ref('');
-    const apps = ref<App[]>([]);
-    const isLoading = ref(false);
+    const goalCategoryFilter = ref('');
+    const allApps = ref<App[]>([]);
+    const currentPage = ref(1);
+    const hasMore = ref(true);
+    const initialLoading = ref(false);
+    const loadingMore = ref(false);
     const error = ref<string | null>(null);
+    const loadMoreTrigger = ref<HTMLElement>();
+    const showExportDropdown = ref(false);
+    const isExporting = ref(false);
     
     const goalCategories = ref<any[]>([]);
+    const loadingCategories = ref(false);
+    const selectedGoalCategory = ref<any>(null);
+    const selectedFormCategory = ref<any>(null);
+    const selectedFormCountry = ref<any>(null);
     const countries = ref<Country[]>([]);
+    const loadingCountries = ref(false);
     const languages = ref<Language[]>([]);
     const allGoalSubCategories = ref<any[]>([]);
     const filteredGoalSubCategories = ref<any[]>([]);
     const goals = ref<any[]>([]);
     const availableGoals = ref<any[]>([]);
     
-    const loadGoalCategories = async () => {
+    const loadGoalCategories = async (search = '') => {
       try {
-        const response = await api.get('/goal-categories');
-        goalCategories.value = response.data;
+        loadingCategories.value = true;
+        const params: any = { page: 1, limit: 50 };
+        if (search) params.search = search;
+        const response = await api.get('/goal-categories', { params });
+        goalCategories.value = response.data.data;
       } catch (err) {
         console.error('Failed to load goal categories:', err);
+      } finally {
+        loadingCategories.value = false;
       }
+    };
+    
+    const searchCategories = (query: string) => {
+      loadGoalCategories(query);
     };
     
     const loadGoalSubCategories = async () => {
@@ -376,13 +422,22 @@ export default defineComponent({
       }
     };
     
-    const loadCountries = async () => {
+    const loadCountries = async (search = '') => {
       try {
-        const response = await api.get('/countries');
-        countries.value = response.data;
+        loadingCountries.value = true;
+        const params: any = { page: 1, limit: 50 };
+        if (search) params.search = search;
+        const response = await api.get('/countries', { params });
+        countries.value = response.data.data || response.data;
       } catch (err) {
         console.error('Failed to load countries:', err);
+      } finally {
+        loadingCountries.value = false;
       }
+    };
+    
+    const searchCountries = (query: string) => {
+      loadCountries(query);
     };
     
     const loadLanguages = async () => {
@@ -402,44 +457,152 @@ export default defineComponent({
       loadLanguages();
     });
     
-    const fetchApps = async () => {
+    const fetchApps = async (reset = false) => {
       try {
-        isLoading.value = true;
+        if (reset) {
+          initialLoading.value = true;
+          currentPage.value = 1;
+          allApps.value = [];
+          hasMore.value = true;
+        } else {
+          loadingMore.value = true;
+        }
+        
         error.value = null;
-        const params: any = {};
+        const params: any = {
+          page: currentPage.value,
+          limit: 12
+        };
         if (searchQuery.value) params.search = searchQuery.value;
         if (countryFilter.value) params.country = countryFilter.value;
+        if (goalCategoryFilter.value) params.goalCategory = goalCategoryFilter.value;
         
         const response = await api.get(endpoints.apps, { params });
-        apps.value = response.data;
+        const data: PaginatedResponse<App> = response.data;
+        
+        if (reset) {
+          allApps.value = data.data;
+        } else {
+          allApps.value = [...allApps.value, ...data.data];
+        }
+        
+        hasMore.value = data.hasNext;
+        currentPage.value = data.page + 1;
       } catch (err: any) {
         error.value = err.response?.data?.message || 'Failed to fetch apps';
       } finally {
-        isLoading.value = false;
+        initialLoading.value = false;
+        loadingMore.value = false;
       }
     };
     
-    const uniqueCountries = computed(() => {
-      if (!apps.value) return [];
+    const loadMore = () => {
+      if (!loadingMore.value && hasMore.value) {
+        fetchApps(false);
+      }
+    };
+    
+    let currentObserver: IntersectionObserver | null = null;
+    
+    const setupIntersectionObserver = () => {
+      if (currentObserver) {
+        currentObserver.disconnect();
+      }
       
-      const countryCodes = apps.value
-        .map(app => app.countryCode)
-        .filter(Boolean) as string[];
+      if (!loadMoreTrigger.value) return;
       
-      return [...new Set(countryCodes)];
+      currentObserver = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasMore.value && !loadingMore.value) {
+            loadMore();
+          }
+        },
+        { threshold: 0.1 }
+      );
+      
+      currentObserver.observe(loadMoreTrigger.value);
+    };
+    
+    const handleExport = async (format: 'csv' | 'excel') => {
+      try {
+        isExporting.value = true;
+        showExportDropdown.value = false;
+        
+        const params = new URLSearchParams({ format });
+        if (searchQuery.value) params.append('search', searchQuery.value);
+        if (countryFilter.value) params.append('country', countryFilter.value);
+        if (goalCategoryFilter.value) params.append('goalCategory', goalCategoryFilter.value);
+        
+        const response = await api.get(`${endpoints.apps}/export?${params.toString()}`, {
+          responseType: 'blob'
+        });
+        
+        const contentType = format === 'excel' 
+          ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          : 'text/csv';
+        const filename = format === 'excel' ? 'apps.xlsx' : 'apps.csv';
+        
+        const blob = new Blob([response.data], { type: contentType });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Export failed:', error);
+      } finally {
+        isExporting.value = false;
+      }
+    };
+    
+
+    
+    // Watch for goal category selection
+    watch(selectedGoalCategory, (newCategory) => {
+      goalCategoryFilter.value = newCategory?.id || '';
     });
     
-    // Debounced search
+    watch(selectedFormCategory, (newCategory) => {
+      formData.goalCategoryId = newCategory?.id || '';
+      if (newCategory) {
+        onCategoryChange();
+      }
+    });
+    
+    watch(selectedFormCountry, (newCountry) => {
+      formData.countryCode = newCountry?.code || '';
+    });
+    
+    // Debounced search for local input
     let searchTimeout: NodeJS.Timeout;
-    watch([searchQuery, countryFilter], () => {
+    watch(localSearchQuery, (newValue) => {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(() => {
-        fetchApps();
+        searchQuery.value = newValue;
       }, 300);
     });
     
-    onMounted(() => {
-      fetchApps();
+    // Watch for actual search and filter changes
+    watch([searchQuery, countryFilter, goalCategoryFilter], async () => {
+      await fetchApps(true);
+      await nextTick();
+      setupIntersectionObserver();
+    });
+    
+    onMounted(async () => {
+      await fetchApps(true);
+      await nextTick();
+      setupIntersectionObserver();
+    });
+    
+    onUnmounted(() => {
+      if (currentObserver) {
+        currentObserver.disconnect();
+      }
+      clearTimeout(searchTimeout);
     });
     
     const showCreateModal = ref(false);
@@ -472,6 +635,8 @@ export default defineComponent({
       formData.goalSubCategoryIds = [];
       formData.goalIds = [];
       formData.audios = [];
+      selectedFormCategory.value = {} as any;
+      selectedFormCountry.value = {} as any;
       availableGoals.value = [];
     };
     
@@ -489,6 +654,8 @@ export default defineComponent({
       formData.appId = app.appId;
       formData.goalCategoryId = app.goalCategory?.id || '';
       formData.countryCode = app.countryCode || '';
+      selectedFormCategory.value = app.goalCategory || {} as any;
+      selectedFormCountry.value = countries.value.find(c => c.code === app.countryCode) || {} as any;
       
       // Filter sub categories and set selections
       if (formData.goalCategoryId) {
@@ -676,14 +843,44 @@ export default defineComponent({
       return text.length > length ? text.substring(0, length) + '...' : text;
     };
     
+    const uniqueCountries = computed(() => {
+      const countrySet = new Set();
+      allApps.value.forEach(app => {
+        if (app.countryCode) {
+          countrySet.add(app.countryCode);
+        }
+      });
+      return Array.from(countrySet);
+    });
+    
+    const apps = computed(() => allApps.value);
+    const isLoading = computed(() => initialLoading.value);
+    
     return {
       apps,
-      error,
-      isLoading,
-      searchQuery,
-      countryFilter,
       uniqueCountries,
+      isLoading,
+      allApps,
+      error,
+      initialLoading,
+      loadingMore,
+      hasMore,
+      searchQuery,
+      localSearchQuery,
+      countryFilter,
+      goalCategoryFilter,
+      selectedGoalCategory,
+      selectedFormCategory,
+      selectedFormCountry,
+      loadingCountries,
+      searchCountries,
+      loadMoreTrigger,
+      showExportDropdown,
+      isExporting,
+      handleExport,
       goalCategories,
+      loadingCategories,
+      searchCategories,
       filteredGoalSubCategories,
       goals,
       countries,

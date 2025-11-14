@@ -7,90 +7,171 @@
       <h2 class="text-xl font-semibold">{{ category?.name }} - Goals</h2>
     </div>
 
-    <!-- Tabs -->
-    <div class="border-b border-gray-200 mb-6">
-      <nav class="-mb-px flex space-x-8">
-        <button 
-          @click="activeTab = 'subcategories'"
-          :class="[
-            'py-2 px-1 border-b-2 font-medium text-sm',
-            activeTab === 'subcategories' 
-              ? 'border-primary-500 text-primary-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-          ]"
-        >
-          Sub Categories ({{ subCategories.length }})
-        </button>
-        <button 
-          @click="activeTab = 'goals'"
-          :class="[
-            'py-2 px-1 border-b-2 font-medium text-sm',
-            activeTab === 'goals' 
-              ? 'border-primary-500 text-primary-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-          ]"
-        >
-          Goals ({{ goals.length }})
-        </button>
-
-      </nav>
-    </div>
-
-    <!-- Sub Categories Tab -->
-    <div v-if="activeTab === 'subcategories'" class="space-y-4">
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-medium">Sub Categories</h3>
-        <button @click="showCreateSubCategoryModal = true" class="btn btn-primary">
-          Add Sub Category
-        </button>
-      </div>
-      
-      <div v-if="subCategories.length === 0" class="text-center py-8 text-gray-500">
-        No sub categories found for this category
-      </div>
-      
-      <div v-else class="grid gap-4">
-        <div v-for="subCategory in subCategories" :key="subCategory.id" class="border rounded-lg p-4">
-          <div class="flex justify-between items-start">
-            <div>
-              <h4 class="font-medium">{{ subCategory.name }}</h4>
-              <p class="text-sm text-gray-500 mt-1">{{ subCategory.description }}</p>
-              <p class="text-xs text-gray-400 mt-1">{{goals.filter(g => g.goalSubCategoryId === subCategory.id).length || 0 }} goals</p>
+    <!-- Enhanced Tabs -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+      <div class="border-b border-gray-200">
+        <nav class="flex space-x-0">
+          <button 
+            @click="activeTab = 'subcategories'"
+            :class="[
+              'flex-1 py-4 px-6 text-center font-semibold text-sm transition-all duration-200 relative',
+              activeTab === 'subcategories' 
+                ? 'text-primary-600 bg-primary-50 border-b-2 border-primary-500' 
+                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+            ]"
+          >
+            <div class="flex items-center justify-center space-x-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7l-7 7-7-7m14 18l-7-7-7 7" />
+              </svg>
+              <span>Sub Categories</span>
+              <span class="ml-1 px-2 py-1 text-xs rounded-full" :class="activeTab === 'subcategories' ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600'">{{ subCategories.length }}</span>
             </div>
-            <div class="flex space-x-2">
-              <button @click="editSubCategory(subCategory)" class="text-primary-600 hover:text-primary-900 text-sm">Edit</button>
-              <button @click="deleteSubCategory(subCategory.id)" class="text-red-600 hover:text-red-900 text-sm">Delete</button>
+          </button>
+          <button 
+            @click="activeTab = 'goals'"
+            :class="[
+              'flex-1 py-4 px-6 text-center font-semibold text-sm transition-all duration-200 relative',
+              activeTab === 'goals' 
+                ? 'text-primary-600 bg-primary-50 border-b-2 border-primary-500' 
+                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+            ]"
+          >
+            <div class="flex items-center justify-center space-x-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Goals</span>
+              <span class="ml-1 px-2 py-1 text-xs rounded-full" :class="activeTab === 'goals' ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600'">{{ goals.length }}</span>
             </div>
-          </div>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Sub Categories Tab Content -->
+      <div v-if="activeTab === 'subcategories'" class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-lg font-semibold text-gray-900">Sub Categories</h3>
+          <button @click="showCreateSubCategoryModal = true" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Sub Category
+          </button>
+        </div>
+        
+        <div v-if="subCategories.length === 0" class="text-center py-12 text-gray-500">
+          <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7l-7 7-7-7m14 18l-7-7-7 7" />
+          </svg>
+          <p class="text-lg font-medium">No sub categories found</p>
+          <p class="text-sm">Get started by creating your first sub category</p>
+        </div>
+        
+        <div v-else class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+          <table class="min-w-full divide-y divide-gray-300">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Goals Count</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="subCategory in subCategories" :key="subCategory.id" class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{{ subCategory.name }}</div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-sm text-gray-500">{{ subCategory.description || '-' }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {{ goals.filter(g => g.goalSubCategoryId === subCategory.id).length || 0 }} goals
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex items-center justify-end space-x-2">
+                    <button @click="editSubCategory(subCategory)" :disabled="formSubmitting" class="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Edit">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button @click="confirmDeleteSubCategory(subCategory)" :disabled="formSubmitting" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Delete">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-    </div>
 
-    <!-- Goals Tab -->
-    <div v-if="activeTab === 'goals'" class="space-y-4">
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-medium">Goals</h3>
-        <button @click="showCreateGoalModal = true" class="btn btn-primary">
-          Add Goal
-        </button>
-      </div>
-      
-      <div v-if="goals.length === 0" class="text-center py-8 text-gray-500">
-        No goals found for this category
-      </div>
-      
-      <div v-else class="grid gap-4">
-        <div v-for="goal in goals" :key="goal.id" class="border rounded-lg p-4">
-          <div class="flex justify-between items-start">
-            <div>
-              <h4 class="font-medium">{{ goal.title }}</h4>
-              <p class="text-sm text-gray-500 mt-1">{{ goal.goalSubCategory?.name || 'No sub category' }}</p>
-            </div>
-            <div class="flex space-x-2">
-              <button @click="editGoal(goal)" class="text-primary-600 hover:text-primary-900 text-sm">Edit</button>
-              <button @click="deleteGoal(goal.id)" class="text-red-600 hover:text-red-900 text-sm">Delete</button>
-            </div>
-          </div>
+      <!-- Goals Tab Content -->
+      <div v-if="activeTab === 'goals'" class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-lg font-semibold text-gray-900">Goals</h3>
+          <button @click="showCreateGoalModal = true" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Goal
+          </button>
+        </div>
+        
+        <div v-if="goals.length === 0" class="text-center py-12 text-gray-500">
+          <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="text-lg font-medium">No goals found</p>
+          <p class="text-sm">Get started by creating your first goal</p>
+        </div>
+        
+        <div v-else class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+          <table class="min-w-full divide-y divide-gray-300">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Display Text</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sub Category</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="goal in goals" :key="goal.id" class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{{ goal.title }}</div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-sm text-gray-500">{{ goal.displayText || '-' }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span v-if="goal.goalSubCategory" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {{ goal.goalSubCategory.name }}
+                  </span>
+                  <span v-else class="text-sm text-gray-400">No sub category</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex items-center justify-end space-x-2">
+                    <button @click="editGoal(goal)" :disabled="formSubmitting" class="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Edit">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button @click="confirmDeleteGoal(goal)" :disabled="formSubmitting" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Delete">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -152,7 +233,11 @@
               class="btn btn-primary"
               :disabled="formSubmitting"
             >
-              {{ showEditGoalModal ? 'Update' : 'Create' }}
+              <svg v-if="formSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ formSubmitting ? (showEditGoalModal ? 'Updating...' : 'Creating...') : (showEditGoalModal ? 'Update' : 'Create') }}
             </button>
           </div>
         </form>
@@ -205,10 +290,78 @@
               class="btn btn-primary"
               :disabled="formSubmitting"
             >
-              {{ showEditSubCategoryModal ? 'Update' : 'Create' }}
+              <svg v-if="formSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ formSubmitting ? (showEditSubCategoryModal ? 'Updating...' : 'Creating...') : (showEditSubCategoryModal ? 'Update' : 'Create') }}
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Delete Sub Category Confirmation Modal -->
+    <div v-if="showDeleteSubCategoryModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
+        <p class="text-sm text-gray-500 mb-4">
+          Are you sure you want to delete the sub-category "{{ subCategoryToDelete?.name }}"? This action cannot be undone.
+        </p>
+        
+        <div class="flex justify-end space-x-3">
+          <button 
+            type="button" 
+            @click="showDeleteSubCategoryModal = false" 
+            class="btn btn-secondary"
+          >
+            Cancel
+          </button>
+          <button 
+            type="button" 
+            @click="deleteSubCategory" 
+            class="btn bg-red-600 text-white hover:bg-red-700"
+            :disabled="formSubmitting"
+          >
+            <svg v-if="formSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ formSubmitting ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Goal Confirmation Modal -->
+    <div v-if="showDeleteGoalModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
+        <p class="text-sm text-gray-500 mb-4">
+          Are you sure you want to delete the goal "{{ goalToDelete?.title }}"? This action cannot be undone.
+        </p>
+        
+        <div class="flex justify-end space-x-3">
+          <button 
+            type="button" 
+            @click="showDeleteGoalModal = false" 
+            class="btn btn-secondary"
+          >
+            Cancel
+          </button>
+          <button 
+            type="button" 
+            @click="deleteGoal" 
+            class="btn bg-red-600 text-white hover:bg-red-700"
+            :disabled="formSubmitting"
+          >
+            <svg v-if="formSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ formSubmitting ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
       </div>
     </div>
   </Layout>
@@ -238,7 +391,11 @@ export default defineComponent({
     const showEditSubCategoryModal = ref(false);
     const showCreateGoalModal = ref(false);
     const showEditGoalModal = ref(false);
+    const showDeleteSubCategoryModal = ref(false);
+    const showDeleteGoalModal = ref(false);
     const formSubmitting = ref(false);
+    const subCategoryToDelete = ref<any>(null);
+    const goalToDelete = ref<any>(null);
     
     const subCategoryFormData = reactive({
       id: '',
@@ -341,14 +498,24 @@ export default defineComponent({
       }
     };
     
-    const deleteSubCategory = async (subCategoryId: string) => {
-      if (!confirm('Are you sure you want to delete this sub category?')) return;
+    const confirmDeleteSubCategory = (subCategory: any) => {
+      subCategoryToDelete.value = subCategory;
+      showDeleteSubCategoryModal.value = true;
+    };
+    
+    const deleteSubCategory = async () => {
+      if (!subCategoryToDelete.value) return;
       
       try {
-        await api.delete(`/goal-sub-categories/${subCategoryId}`);
+        formSubmitting.value = true;
+        await api.delete(`/goal-sub-categories/${subCategoryToDelete.value.id}`);
         await loadSubCategories();
+        showDeleteSubCategoryModal.value = false;
+        subCategoryToDelete.value = null;
       } catch (err) {
         console.error('Failed to delete sub category:', err);
+      } finally {
+        formSubmitting.value = false;
       }
     };
     
@@ -397,14 +564,24 @@ export default defineComponent({
       }
     };
     
-    const deleteGoal = async (goalId: string) => {
-      if (!confirm('Are you sure you want to delete this goal?')) return;
+    const confirmDeleteGoal = (goal: any) => {
+      goalToDelete.value = goal;
+      showDeleteGoalModal.value = true;
+    };
+    
+    const deleteGoal = async () => {
+      if (!goalToDelete.value) return;
       
       try {
-        await api.delete(`/goals/${goalId}`);
+        formSubmitting.value = true;
+        await api.delete(`/goals/${goalToDelete.value.id}`);
         await loadGoals();
+        showDeleteGoalModal.value = false;
+        goalToDelete.value = null;
       } catch (err) {
         console.error('Failed to delete goal:', err);
+      } finally {
+        formSubmitting.value = false;
       }
     };
     
@@ -425,18 +602,24 @@ export default defineComponent({
       showEditSubCategoryModal,
       showCreateGoalModal,
       showEditGoalModal,
+      showDeleteSubCategoryModal,
+      showDeleteGoalModal,
       subCategoryFormData,
       goalFormData,
       formSubmitting,
+      subCategoryToDelete,
+      goalToDelete,
       closeSubCategoryModal,
       closeGoalModal,
       createSubCategory,
       editSubCategory,
       updateSubCategory,
+      confirmDeleteSubCategory,
       deleteSubCategory,
       createGoal,
       editGoal,
       updateGoal,
+      confirmDeleteGoal,
       deleteGoal
     };
   }

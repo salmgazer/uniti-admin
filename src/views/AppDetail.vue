@@ -10,43 +10,40 @@
     
     <div v-else-if="app" class="space-y-6">
       <!-- App Details -->
-      <div class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div class="md:flex">
-          <div class="md:flex-shrink-0 h-64 md:w-1/3 bg-gray-200 flex items-center justify-center">
-            <img v-if="app.imageUrl" :src="app.imageUrl" class="h-full w-full object-cover" alt="" />
-            <div v-else class="text-6xl text-gray-400">
+          <div class="md:flex-shrink-0 h-48 md:w-1/4 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+            <img v-if="app.imageUrl" :src="app.imageUrl" class="h-32 w-32 object-cover rounded-lg" alt="" />
+            <div v-else class="h-32 w-32 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600 font-bold text-4xl">
               {{ app.title.charAt(0).toUpperCase() }}
             </div>
           </div>
-          <div class="p-6 md:w-2/3">
-            <div class="flex justify-between items-start">
+          <div class="p-5 md:w-3/4">
+            <div class="flex justify-between items-start mb-3">
               <div>
-                <h2 class="text-2xl font-bold text-gray-900">{{ app.title }}</h2>
-                <p class="text-sm text-gray-500">ID: {{ app.id }}</p>
+                <h2 class="text-xl font-bold text-gray-900">{{ app.title }}</h2>
+                <p class="text-xs text-gray-500">{{ app.appId }}</p>
               </div>
-              <span v-if="app.countryCode" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                {{ app.countryCode }}
-              </span>
+              <div class="flex items-center space-x-2">
+                <span v-if="app.countryCode" class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
+                  {{ app.countryCode }}
+                </span>
+                <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                  {{ totalUsers || 0 }} users
+                </span>
+              </div>
             </div>
             
-            <div class="mt-4">
-              <p class="text-sm font-medium text-gray-500">Description</p>
-              <p class="mt-1">{{ app.description || 'No description provided' }}</p>
-            </div>
+            <p class="text-sm text-gray-600 mb-3">{{ app.description || 'No description provided' }}</p>
             
-            <div class="mt-4">
-              <p class="text-sm font-medium text-gray-500">App ID</p>
-              <p class="mt-1">{{ app.appId }}</p>
-            </div>
-            
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <p class="text-sm font-medium text-gray-500">Created</p>
-                <p class="mt-1">{{ formatDate(app.createdAt) }}</p>
+                <p class="font-medium text-gray-500">Created</p>
+                <p class="text-gray-700">{{ formatDate(app.createdAt) }}</p>
               </div>
               <div>
-                <p class="text-sm font-medium text-gray-500">Last Updated</p>
-                <p class="mt-1">{{ formatDate(app.updatedAt) }}</p>
+                <p class="font-medium text-gray-500">Updated</p>
+                <p class="text-gray-700">{{ formatDate(app.updatedAt) }}</p>
               </div>
             </div>
           </div>
@@ -54,64 +51,59 @@
       </div>
       
       <!-- Goal Category -->
-      <div v-if="app.goalCategory" class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Goal Category</h3>
-        <div class="border rounded-lg p-4">
-          <h4 class="font-medium">{{ app.goalCategory.name }}</h4>
-          <p class="text-sm text-gray-500">{{ app.goalCategory.description || 'No description' }}</p>
+      <div v-if="app.goalCategory" class="bg-white rounded-lg border border-gray-200 p-4">
+        <h3 class="text-base font-semibold text-gray-900 mb-3">Goal Category</h3>
+        <div class="bg-white border border-gray-200 rounded-lg p-3">
+          <h4 class="font-medium text-sm">{{ app.goalCategory.name }}</h4>
+          <p class="text-xs text-gray-500 mt-1">{{ app.goalCategory.description || 'No description' }}</p>
         </div>
       </div>
       
       <!-- Goal Sub Categories -->
-      <div v-if="app.goalSubCategories?.length" class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Goal Sub Categories</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div v-for="subCategory in app.goalSubCategories" :key="subCategory.id" class="border rounded-lg p-4">
-            <h4 class="font-medium">{{ subCategory.name }}</h4>
-            <p class="text-sm text-gray-500">{{ subCategory.description || 'No description' }}</p>
+      <div v-if="app.goalSubCategories?.length" class="bg-white rounded-lg border border-gray-200 p-4">
+        <h3 class="text-base font-semibold text-gray-900 mb-3">Goal Sub Categories</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div v-for="subCategory in app.goalSubCategories" :key="subCategory.id" class="bg-white border border-gray-200 rounded-lg p-3">
+            <h4 class="font-medium text-sm">{{ subCategory.name }}</h4>
+            <p class="text-xs text-gray-500 mt-1">{{ subCategory.description || 'No description' }}</p>
           </div>
         </div>
       </div>
       
       <!-- Goals -->
-      <div v-if="app.goals?.length" class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Supported Goals</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div v-for="goal in app.goals" :key="goal.id" class="border rounded-lg p-4">
-            <h4 class="font-medium">{{ goal.title }}</h4>
-            <p class="text-sm text-gray-500">{{ goal.description || 'No description' }}</p>
+      <div v-if="app.goals?.length" class="bg-white rounded-lg border border-gray-200 p-4">
+        <h3 class="text-base font-semibold text-gray-900 mb-3">Supported Goals</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div v-for="goal in app.goals" :key="goal.id" class="bg-white border border-gray-200 rounded-lg p-3">
+            <h4 class="font-medium text-sm">{{ goal.title }}</h4>
+            <p class="text-xs text-gray-500 mt-1">{{ goal.description || 'No description' }}</p>
           </div>
         </div>
       </div>
       
       <!-- Audio Files -->
-      <div v-if="app.audios?.length" class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Audio Files</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div v-for="audio in app.audios" :key="audio.id" class="border rounded-lg p-4">
-            <div class="flex justify-between items-start mb-2">
-              <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+      <div v-if="app.audios?.length" class="bg-white rounded-lg border border-gray-200 p-4">
+        <h3 class="text-base font-semibold text-gray-900 mb-3">Audio Files</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div v-for="audio in app.audios" :key="audio.id" class="bg-white border border-gray-200 rounded-lg p-3">
+            <div class="flex justify-between items-center mb-2">
+              <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
                 {{ audio.languageCode.toUpperCase() }}
               </span>
-              <span class="text-xs text-gray-500">{{ formatDate(audio.createdAt) }}</span>
+              <span class="text-xs text-gray-400">{{ formatDate(audio.createdAt) }}</span>
             </div>
-            <div class="mt-2">
-              <audio controls class="w-full">
-                <source :src="audio.fileUrl" type="audio/mpeg">
-                Your browser does not support the audio element.
-              </audio>
-            </div>
-            <div class="mt-2">
-              <a :href="audio.fileUrl" target="_blank" class="text-xs text-primary-600 hover:text-primary-900 break-all">
-                {{ audio.fileUrl }}
-              </a>
-            </div>
+            <audio controls class="w-full h-8 mb-2">
+              <source :src="audio.fileUrl" type="audio/mpeg">
+            </audio>
+            <a :href="audio.fileUrl" target="_blank" class="text-xs text-primary-600 hover:text-primary-700 truncate block">
+              Download
+            </a>
           </div>
         </div>
       </div>
       
       <!-- Country Information -->
-      <div v-if="app.country" class="bg-white rounded-lg shadow p-6">
+      <div v-if="app.country" class="bg-white rounded-lg border border-gray-200 p-6">
         <h3 class="text-lg font-medium text-gray-900 mb-4">Country Information</h3>
         
         <div class="flex items-center">
@@ -122,12 +114,6 @@
             <h4 class="font-medium">{{ app.country.name }}</h4>
             <p class="text-sm text-gray-500">Code: {{ app.country.code }}</p>
           </div>
-        </div>
-        
-        <div class="mt-4 text-right">
-          <router-link :to="`/apps?country=${app.countryCode}`" class="text-sm text-primary-600 hover:text-primary-900">
-            View All Apps for {{ app.country.name }}
-          </router-link>
         </div>
       </div>
     </div>
@@ -155,6 +141,11 @@ export default defineComponent({
       (key) => api.get(key).then(res => res.data)
     );
     
+    const { data: totalUsers } = swrv<number>(
+      () => appId.value ? `/apps/${appId.value}/users/count` : null,
+      (key) => api.get(key).then(res => res.data.count)
+    );
+    
     const formatDate = (dateString: string) => {
       return new Date(dateString).toLocaleDateString();
     };
@@ -163,6 +154,7 @@ export default defineComponent({
       app,
       error,
       isLoading,
+      totalUsers,
       formatDate
     };
   }

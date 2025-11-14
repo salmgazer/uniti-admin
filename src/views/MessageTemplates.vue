@@ -6,19 +6,7 @@
         <p class="text-gray-500 mt-1">Create and manage reusable message templates</p>
       </div>
       <div class="flex items-center space-x-4">
-        <div class="relative">
-          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-            </svg>
-          </div>
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="Search templates..." 
-            class="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white shadow-sm"
-          />
-        </div>
+
         <router-link to="/message-templates/create" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -28,94 +16,72 @@
       </div>
     </div>
 
-    <div class="card p-0 overflow-hidden">
-      <table class="table-modern">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Category</th>
-            <th>Languages</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="isLoading">
-            <td colspan="5" class="px-6 py-8 text-center">
-              <div class="flex justify-center">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-              </div>
-              <p class="mt-2 text-gray-500">Loading templates...</p>
-            </td>
-          </tr>
-          <tr v-else-if="error">
-            <td colspan="5" class="px-6 py-8 text-center">
-              <div class="text-red-500 flex flex-col items-center">
-                <svg class="h-10 w-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p class="mt-2">{{ error }}</p>
-              </div>
-            </td>
-          </tr>
-          <tr v-else-if="templates.length === 0">
-            <td colspan="5" class="px-6 py-8 text-center">
-              <div class="text-gray-500 flex flex-col items-center">
-                <svg class="h-10 w-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <p class="mt-2">No templates found</p>
-              </div>
-            </td>
-          </tr>
-          <tr v-for="template in templates" :key="template.id" class="hover:bg-gray-50 transition-colors duration-150">
-            <td>
-              <div class="font-medium text-gray-900">{{ template.title }}</div>
-              <div class="text-sm text-gray-500">{{ truncate(template.content, 60) }}</div>
-            </td>
-            <td>
-              <span class="badge badge-secondary">
-                {{ template.category || 'General' }}
-              </span>
-            </td>
-            <td class="text-sm text-gray-500">
-              EN{{ template.translations ? ` +${Object.keys(template.translations).length}` : '' }}
-            </td>
-            <td>
-              <span :class="template.isActive ? 'badge-success' : 'badge-warning'" class="badge">
-                {{ template.isActive ? 'Active' : 'Inactive' }}
-              </span>
-            </td>
-            <td>
-              <div class="flex items-center space-x-1">
-                <router-link :to="`/message-templates/${template.id}/edit`" 
-                             class="p-2 text-primary-600 hover:bg-primary-50 rounded transition-colors" title="Edit">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </router-link>
-                <button @click="sendTemplate(template)" 
-                        class="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Send">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
-                </button>
-                <button @click="confirmDelete(template)" 
-                        class="p-2 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      :columns="columns"
+      :data="templatesData?.data || []"
+      :pagination="templatesData ? { page: templatesData.page, limit: templatesData.limit, total: templatesData.total, totalPages: templatesData.totalPages, hasNext: templatesData.hasNext, hasPrev: templatesData.hasPrev } : undefined"
+      :is-loading="isLoading"
+      :error="error"
+      :show-search="true"
+      :show-export="true"
+      :search-value="searchQuery"
+      :is-exporting="isExporting"
+      @page-change="handlePageChange"
+      @search="handleSearch"
+      @export="handleExport"
+    >
+      <template #cell-title="{ item }">
+        <div>
+          <div class="font-medium text-gray-900">{{ item.title }}</div>
+          <div class="text-sm text-gray-500">{{ truncate(item.content, 60) }}</div>
+        </div>
+      </template>
+      
+      <template #cell-category="{ item }">
+        <span class="badge badge-secondary">
+          {{ item.category || 'General' }}
+        </span>
+      </template>
+      
+      <template #cell-languages="{ item }">
+        <span class="text-sm text-gray-500">
+          EN{{ item.translations ? ` +${Object.keys(item.translations).length}` : '' }}
+        </span>
+      </template>
+      
+      <template #cell-status="{ item }">
+        <span :class="item.isActive ? 'badge-success' : 'badge-warning'" class="badge">
+          {{ item.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </template>
+      
+      <template #cell-actions="{ item }">
+        <div class="flex items-center space-x-1">
+          <router-link :to="`/message-templates/${item.id}/edit`" 
+                       class="p-2 text-primary-600 hover:bg-primary-50 rounded transition-colors" title="Edit">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </router-link>
+          <button @click="sendTemplate(item)" 
+                  class="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Send">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+          </button>
+          <button @click="confirmDelete(item)" 
+                  class="p-2 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </template>
+    </DataTable>
 
     <!-- Send Template Modal -->
-    <div v-if="showSendModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div v-if="showSendModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div class="p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Send Template Message</h3>
           
@@ -125,44 +91,60 @@
                 <label class="block text-sm font-medium text-gray-700">Select Users <span class="text-red-500">*</span></label>
                 
                 <!-- Selected Users -->
-                <div v-if="selectedUsers.length > 0" class="mt-2 flex flex-wrap gap-2">
-                  <span v-for="user in selectedUsers" :key="user.id" 
-                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {{ user.name || user.phoneNumber }}
-                    <button @click="removeUser(user.id)" class="ml-1 text-blue-600 hover:text-blue-800">
-                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                      </svg>
-                    </button>
-                  </span>
+                <div v-if="selectedUsers.length > 0" class="mt-2 p-3 bg-gray-50 rounded-lg border max-h-48 overflow-y-auto">
+                  <div class="text-sm font-medium text-gray-700 mb-2">Selected Users ({{ selectedUsers.length }})</div>
+                  <div class="flex flex-wrap gap-2">
+                    <span v-for="user in selectedUsers" :key="user.id" 
+                          class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                      <div class="flex flex-col items-start">
+                        <span class="font-medium">{{ user.name || 'Unnamed User' }}</span>
+                        <span class="text-xs text-blue-600">{{ user.phoneNumber }}</span>
+                      </div>
+                      <button @click="removeUser(user.id)" class="ml-2 text-blue-600 hover:text-blue-800">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                      </button>
+                    </span>
+                  </div>
                 </div>
                 
                 <!-- User Search Dropdown -->
                 <div class="relative mt-2">
                   <input 
                     v-model="userSearch" 
+                    @input="handleUserSearch"
                     @focus="showUserDropdown = true"
                     @blur="handleBlur"
                     type="text" 
-                    placeholder="Search users..."
+                    placeholder="Search users by name or phone..."
                     class="input w-full"
                   />
                   
                   <div v-if="showUserDropdown" class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                    <div v-if="filteredUsers.length === 0" class="px-3 py-2 text-sm text-gray-500">
-                      No users found
+                    <div v-if="usersLoading" class="px-3 py-2 text-sm text-gray-500 flex items-center">
+                      <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Searching...
                     </div>
-                    <div v-for="user in filteredUsers" :key="user.id" 
-                         @click="toggleUser(user.id)"
-                         class="px-3 py-2 cursor-pointer hover:bg-gray-100 flex items-center justify-between">
-                      <div>
-                        <div class="font-medium text-sm">{{ user.name || 'Unnamed User' }}</div>
-                        <div class="text-xs text-gray-500">{{ user.phoneNumber }}</div>
-                      </div>
-                      <div v-if="sendData.userIds.includes(user.id)" class="text-blue-600">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
+                    <div v-else-if="filteredUsers.length === 0" class="px-3 py-2 text-sm text-gray-500">
+                      {{ userSearch ? 'No users found' : 'Type to search users' }}
+                    </div>
+                    <div v-else>
+                      <div v-for="user in filteredUsers" :key="user.id" 
+                           @click="toggleUser(user.id)"
+                           class="px-3 py-2 cursor-pointer hover:bg-gray-100 flex items-center justify-between">
+                        <div>
+                          <div class="font-medium text-sm">{{ user.name || 'Unnamed User' }}</div>
+                          <div class="text-xs text-gray-500">{{ user.phoneNumber }}</div>
+                        </div>
+                        <div v-if="sendData.userIds.includes(user.id)" class="text-blue-600">
+                          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -170,16 +152,49 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700">Placeholders (JSON)</label>
-                <textarea v-model="sendData.placeholders" rows="3" class="input mt-1" 
-                          placeholder='{"primary_goal": "Health"}'></textarea>
+                <div class="flex items-center justify-between mb-2">
+                  <label class="block text-sm font-medium text-gray-700">Placeholders</label>
+                  <button type="button" @click="addPlaceholder" class="text-sm text-primary-600 hover:text-primary-800">
+                    + Add Placeholder
+                  </button>
+                </div>
+                <div class="space-y-2">
+                  <div v-for="(placeholder, index) in sendData.placeholders" :key="index" class="flex items-center space-x-2">
+                    <input 
+                      v-model="placeholder.key" 
+                      type="text" 
+                      placeholder="Key (e.g., primary_goal)"
+                      class="input flex-1"
+                    />
+                    <input 
+                      v-model="placeholder.value" 
+                      type="text" 
+                      placeholder="Value (e.g., Health)"
+                      class="input flex-1"
+                    />
+                    <button 
+                      type="button" 
+                      @click="removePlaceholder(index)" 
+                      :disabled="sendData.placeholders.length === 1"
+                      class="p-2 text-red-600 hover:bg-red-50 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
             
             <div class="mt-6 flex justify-end space-x-3">
               <button type="button" @click="showSendModal = false" class="btn btn-secondary">Cancel</button>
               <button type="submit" class="btn btn-primary" :disabled="formSubmitting || sendData.userIds.length === 0">
-                Send to {{ sendData.userIds.length }} user{{ sendData.userIds.length !== 1 ? 's' : '' }}
+                <svg v-if="formSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {{ formSubmitting ? 'Sending...' : `Send to ${sendData.userIds.length} user${sendData.userIds.length !== 1 ? 's' : ''}` }}
               </button>
             </div>
           </form>
@@ -198,7 +213,11 @@
         <div class="flex justify-end space-x-3">
           <button @click="showDeleteModal = false" class="btn btn-secondary">Cancel</button>
           <button @click="deleteTemplate" class="btn bg-red-600 text-white hover:bg-red-700" :disabled="formSubmitting">
-            Delete
+            <svg v-if="formSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ formSubmitting ? 'Deleting...' : 'Delete' }}
           </button>
         </div>
       </div>
@@ -207,18 +226,22 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive, onMounted, watch, computed } from 'vue';
-import { api, endpoints, MessageTemplate } from '@/services/api';
+import { defineComponent, ref, reactive, computed } from 'vue';
+import swrv from 'swrv';
+import { api, endpoints, MessageTemplate, PaginatedResponse } from '@/services/api';
 import Layout from '@/components/Layout.vue';
+import DataTable, { Column } from '@/components/DataTable.vue';
+import { useToast } from '@/composables/useToast';
 
 export default defineComponent({
   name: 'MessageTemplates',
-  components: { Layout },
+  components: { Layout, DataTable },
   setup() {
+    const { success, error: showError } = useToast();
+    const currentPage = ref(1);
+    const pageSize = ref(10);
     const searchQuery = ref('');
-    const templates = ref<MessageTemplate[]>([]);
-    const isLoading = ref(false);
-    const error = ref<string | null>(null);
+    const isExporting = ref(false);
     const showSendModal = ref(false);
     const showDeleteModal = ref(false);
     const formSubmitting = ref(false);
@@ -227,39 +250,80 @@ export default defineComponent({
     
     const sendData = reactive({
       userIds: [] as string[],
-      placeholders: ''
+      placeholders: [{ key: '', value: '' }] as { key: string; value: string }[]
     });
     
     const users = ref<any[]>([]);
+    const selectedUserObjects = ref<any[]>([]);
     const userSearch = ref('');
     const showUserDropdown = ref(false);
+    const usersLoading = ref(false);
+    const searchTimeout = ref<NodeJS.Timeout | null>(null);
     
-    const fetchTemplates = async (search?: string) => {
+    const columns: Column[] = [
+      { key: 'title', label: 'Title' },
+      { key: 'category', label: 'Category' },
+      { key: 'languages', label: 'Languages' },
+      { key: 'status', label: 'Status' },
+      { key: 'actions', label: 'Actions' }
+    ];
+
+    const templatesUrl = computed(() => {
+      const params = new URLSearchParams({
+        page: currentPage.value.toString(),
+        limit: pageSize.value.toString()
+      });
+      if (searchQuery.value) {
+        params.append('search', searchQuery.value);
+      }
+      return `${endpoints.messageTemplates}?${params.toString()}`;
+    });
+
+    const { data: templatesData, error, isValidating: isLoading, mutate } = swrv<PaginatedResponse<MessageTemplate>>(
+      templatesUrl,
+      (url) => api.get(url).then(res => res.data)
+    );
+
+    const handlePageChange = (page: number) => {
+      currentPage.value = page;
+    };
+
+    const handleSearch = (query: string) => {
+      searchQuery.value = query;
+      currentPage.value = 1;
+    };
+
+    const handleExport = async (format: 'csv' | 'excel') => {
       try {
-        isLoading.value = true;
-        error.value = null;
-        const params = search ? { search } : {};
-        const response = await api.get(endpoints.messageTemplates, { params });
-        templates.value = response.data;
-      } catch (err: any) {
-        error.value = err.response?.data?.message || 'Failed to fetch templates';
+        isExporting.value = true;
+        const params = new URLSearchParams({ format });
+        if (searchQuery.value) {
+          params.append('search', searchQuery.value);
+        }
+        const response = await api.get(`${endpoints.messageTemplates}/export?${params.toString()}`, {
+          responseType: 'blob'
+        });
+        
+        const contentType = format === 'excel' 
+          ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          : 'text/csv';
+        const filename = format === 'excel' ? 'message-templates.xlsx' : 'message-templates.csv';
+        
+        const blob = new Blob([response.data], { type: contentType });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Export failed:', error);
       } finally {
-        isLoading.value = false;
+        isExporting.value = false;
       }
     };
-    
-    // Debounced search
-    let searchTimeout: NodeJS.Timeout;
-    watch(searchQuery, (newQuery) => {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        fetchTemplates(newQuery || undefined);
-      }, 300);
-    });
-    
-    onMounted(() => {
-      fetchTemplates();
-    });
     
     const confirmDelete = (template: MessageTemplate) => {
       templateToDelete.value = template;
@@ -272,7 +336,7 @@ export default defineComponent({
       try {
         formSubmitting.value = true;
         await api.delete(endpoints.messageTemplate(templateToDelete.value.id));
-        await fetchTemplates(searchQuery.value || undefined);
+        await mutate();
         showDeleteModal.value = false;
         templateToDelete.value = null;
       } catch (err) {
@@ -284,19 +348,31 @@ export default defineComponent({
     
     const fetchUsers = async (search?: string) => {
       try {
-        const params = search ? { search } : {};
-        const response = await api.get(endpoints.users, { params });
-        users.value = response.data;
+        usersLoading.value = true;
+        const params = new URLSearchParams({
+          page: '1',
+          limit: '50'
+        });
+        if (search) {
+          params.append('search', search);
+        }
+        const response = await api.get(`${endpoints.users}?${params.toString()}`);
+        users.value = response.data.data || response.data;
       } catch (err) {
         console.error('Failed to fetch users:', err);
+        users.value = [];
+      } finally {
+        usersLoading.value = false;
       }
     };
     
     const sendTemplate = (template: MessageTemplate) => {
       templateToSend.value = template;
       sendData.userIds = [];
-      sendData.placeholders = '';
-      fetchUsers();
+      sendData.placeholders = [{ key: '', value: '' }];
+      selectedUserObjects.value = [];
+      userSearch.value = '';
+      users.value = [];
       showSendModal.value = true;
     };
     
@@ -304,8 +380,16 @@ export default defineComponent({
       const index = sendData.userIds.indexOf(userId);
       if (index > -1) {
         sendData.userIds.splice(index, 1);
+        const objIndex = selectedUserObjects.value.findIndex(u => u.id === userId);
+        if (objIndex > -1) {
+          selectedUserObjects.value.splice(objIndex, 1);
+        }
       } else {
         sendData.userIds.push(userId);
+        const user = users.value.find(u => u.id === userId);
+        if (user) {
+          selectedUserObjects.value.push(user);
+        }
       }
       userSearch.value = '';
       showUserDropdown.value = false;
@@ -316,20 +400,29 @@ export default defineComponent({
       if (index > -1) {
         sendData.userIds.splice(index, 1);
       }
+      const objIndex = selectedUserObjects.value.findIndex(u => u.id === userId);
+      if (objIndex > -1) {
+        selectedUserObjects.value.splice(objIndex, 1);
+      }
     };
     
     const filteredUsers = computed(() => {
-      if (!userSearch.value) return users.value;
-      const query = userSearch.value.toLowerCase();
-      return users.value.filter(user => 
-        (user.name?.toLowerCase().includes(query)) ||
-        user.phoneNumber.toLowerCase().includes(query)
-      );
+      return users.value;
     });
     
     const selectedUsers = computed(() => {
-      return users.value.filter(user => sendData.userIds.includes(user.id));
+      return selectedUserObjects.value;
     });
+    
+    const addPlaceholder = () => {
+      sendData.placeholders.push({ key: '', value: '' });
+    };
+    
+    const removePlaceholder = (index: number) => {
+      if (sendData.placeholders.length > 1) {
+        sendData.placeholders.splice(index, 1);
+      }
+    };
     
     const sendTemplateMessage = async () => {
       if (!templateToSend.value) return;
@@ -337,7 +430,12 @@ export default defineComponent({
       try {
         formSubmitting.value = true;
         const userIds = sendData.userIds;
-        const placeholders = sendData.placeholders ? JSON.parse(sendData.placeholders) : {};
+        const placeholders = sendData.placeholders.reduce((acc, item) => {
+          if (item.key && item.value) {
+            acc[item.key] = item.value;
+          }
+          return acc;
+        }, {} as Record<string, string>);
         
         await api.post(endpoints.sendTemplateMessage, {
           templateId: templateToSend.value.id,
@@ -347,10 +445,10 @@ export default defineComponent({
         
         showSendModal.value = false;
         templateToSend.value = null;
-        alert('Messages sent successfully!');
+        success('Messages sent successfully!', `Template message sent to ${userIds.length} user${userIds.length !== 1 ? 's' : ''}`);
       } catch (err) {
         console.error('Failed to send template message:', err);
-        alert('Failed to send messages');
+        showError('Failed to send messages', 'Please try again later');
       } finally {
         formSubmitting.value = false;
       }
@@ -360,15 +458,26 @@ export default defineComponent({
       return text.length > length ? text.substring(0, length) + '...' : text;
     };
     
+    const handleUserSearch = () => {
+      if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value);
+      }
+      searchTimeout.value = setTimeout(() => {
+        fetchUsers(userSearch.value);
+      }, 300);
+    };
+    
     const handleBlur = () => {
       setTimeout(() => showUserDropdown.value = false, 200);
     };
     
     return {
-      templates,
+      columns,
+      templatesData,
       error,
       isLoading,
       searchQuery,
+      isExporting,
       showSendModal,
       showDeleteModal,
       sendData,
@@ -377,8 +486,15 @@ export default defineComponent({
       users,
       userSearch,
       showUserDropdown,
+      usersLoading,
       filteredUsers,
       selectedUsers,
+      addPlaceholder,
+      removePlaceholder,
+      handleUserSearch,
+      handlePageChange,
+      handleSearch,
+      handleExport,
       confirmDelete,
       deleteTemplate,
       sendTemplate,

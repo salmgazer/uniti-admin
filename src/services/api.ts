@@ -57,6 +57,10 @@ export const endpoints = {
   messageTemplates: '/message-templates',
   messageTemplate: (id: string) => `/message-templates/${id}`,
   sendTemplateMessage: '/message-templates/send',
+  
+  // Analytics
+  userAnalytics: (id: string) => `/users/${id}/analytics`,
+  analyticsOverview: '/analytics/overview',
 };
 
 // Types
@@ -89,6 +93,16 @@ export interface User {
   country?: Country;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 export interface AppAudio {
@@ -163,4 +177,49 @@ export interface MessageTemplate {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface UserAnalytics {
+  totalUsageTime: number;
+  totalSessions: number;
+  activeApps: number;
+  topApps: {
+    packageName: string;
+    appName?: string;
+    totalTime: number;
+    sessions: number;
+  }[];
+  dailyUsage: {
+    date: string;
+    totalTime: number;
+    sessions: number;
+  }[];
+  goalCategoryUsage: {
+    categoryId: string;
+    categoryName: string;
+    totalTime: number;
+    sessions: number;
+    appCount: number;
+  }[];
+  maxDailyUsage: number;
+}
+
+export interface AnalyticsOverview {
+  totalUsageTime: number;
+  totalSessions: number;
+  activeUsers: number;
+  avgSessionDuration: number;
+  topApps: {
+    packageName: string;
+    appName?: string;
+    totalTime: number;
+    userCount: number;
+  }[];
+  goalCategoryUsage: {
+    categoryId: string;
+    categoryName: string;
+    totalTime: number;
+    userCount: number;
+    appCount: number;
+  }[];
 }

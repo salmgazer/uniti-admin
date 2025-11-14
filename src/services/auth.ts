@@ -48,12 +48,10 @@ export const useAuth = () => {
     }
     
     try {
-      // Get current admin user
-      const response = await api.get(endpoints.adminUsers);
-      if (response.data && response.data.length > 0) {
-        // Find the current user by comparing with token info
-        // This is a simplified approach - in a real app, you'd have a /me endpoint
-        currentUser.value = response.data[0];
+      // Get current authenticated admin user
+      const response = await api.get(`${endpoints.adminUsers}/me`);
+      if (response.data) {
+        currentUser.value = response.data;
         isAuthenticated.value = true;
         return true;
       }

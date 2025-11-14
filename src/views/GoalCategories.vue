@@ -10,66 +10,67 @@
       </button>
     </div>
 
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Icon</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-if="isLoading">
-            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Loading categories...</td>
-          </tr>
-          <tr v-else-if="error">
-            <td colspan="5" class="px-6 py-4 text-center text-sm text-red-500">{{ error }}</td>
-          </tr>
-          <tr v-else-if="!categories || categories.length === 0">
-            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No categories found</td>
-          </tr>
-          <tr v-for="category in categories" :key="category.id" class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="flex-shrink-0 h-10 w-10">
-                <img v-if="category.iconUrl" :src="category.iconUrl" class="h-10 w-10 rounded-full" alt="" />
-                <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                  {{ category.name.charAt(0).toUpperCase() }}
-                </div>
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ category.name }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ category.description || '-' }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ category.order }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <div class="flex items-center space-x-1">
-                <router-link :to="`/goal-categories/${category.id}`" 
-                             class="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="View">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </router-link>
-                <button @click="editCategory(category)" 
-                        class="p-2 text-primary-600 hover:bg-primary-50 rounded transition-colors" title="Edit">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <button @click="confirmDelete(category)" 
-                        class="p-2 text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      :columns="columns"
+      :data="categoriesData?.data || []"
+      :pagination="categoriesData ? { page: categoriesData.page, limit: categoriesData.limit, total: categoriesData.total, totalPages: categoriesData.totalPages, hasNext: categoriesData.hasNext, hasPrev: categoriesData.hasPrev } : undefined"
+      :is-loading="isLoading"
+      :error="error"
+      :show-search="true"
+      :show-export="true"
+      :search-value="searchQuery"
+      :is-exporting="isExporting"
+      @page-change="handlePageChange"
+      @search="handleSearch"
+      @export="handleExport"
+    >
+      <template #cell-icon="{ item }">
+        <div class="flex-shrink-0 h-10 w-10">
+          <img v-if="item.iconUrl" :src="item.iconUrl" class="h-10 w-10 rounded-full" alt="" />
+          <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+            {{ item.name.charAt(0).toUpperCase() }}
+          </div>
+        </div>
+      </template>
+      
+      <template #cell-name="{ item }">
+        <span class="text-sm font-medium text-gray-900">{{ item.name }}</span>
+      </template>
+      
+      <template #cell-description="{ item }">
+        <span class="text-sm text-gray-500">{{ item.description || '-' }}</span>
+      </template>
+      
+      <template #cell-order="{ item }">
+        <span class="text-sm text-gray-500">{{ item.order }}</span>
+      </template>
+      
+      <template #cell-actions="{ item }">
+        <div class="flex items-center space-x-1">
+          <router-link :to="`/goal-categories/${item.id}`" 
+                       class="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="View">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </router-link>
+          <button @click="editCategory(item)" 
+                  :disabled="formSubmitting"
+                  class="p-2 text-primary-600 hover:bg-primary-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Edit">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+          <button @click="confirmDelete(item)" 
+                  :disabled="formSubmitting"
+                  class="p-2 text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Delete">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </template>
+    </DataTable>
 
     <!-- Create/Edit Modal -->
     <div v-if="showCreateModal || showEditModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
@@ -143,7 +144,11 @@
               class="btn btn-primary"
               :disabled="formSubmitting"
             >
-              {{ showEditModal ? 'Update' : 'Create' }}
+              <svg v-if="formSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ formSubmitting ? (showEditModal ? 'Updating...' : 'Creating...') : (showEditModal ? 'Update' : 'Create') }}
             </button>
           </div>
         </form>
@@ -175,7 +180,11 @@
             class="btn bg-red-600 text-white hover:bg-red-700"
             :disabled="formSubmitting"
           >
-            Delete
+            <svg v-if="formSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ formSubmitting ? 'Deleting...' : 'Delete' }}
           </button>
         </div>
       </div>
@@ -186,10 +195,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive } from 'vue';
+import { defineComponent, ref, reactive, computed } from 'vue';
 import swrv from 'swrv';
-import { api } from '@/services/api';
+import { api, PaginatedResponse } from '@/services/api';
 import Layout from '@/components/Layout.vue';
+import DataTable, { Column } from '@/components/DataTable.vue';
 
 interface GoalCategory {
   id: string;
@@ -204,13 +214,79 @@ interface GoalCategory {
 export default defineComponent({
   name: 'GoalCategories',
   components: {
-    Layout
+    Layout,
+    DataTable
   },
   setup() {
-    const { data: categories, error, isValidating: isLoading, mutate } = swrv<GoalCategory[]>(
-      '/goal-categories',
-      () => api.get('/goal-categories').then(res => res.data)
+    const currentPage = ref(1);
+    const pageSize = ref(10);
+    const searchQuery = ref('');
+    const isExporting = ref(false);
+
+    const columns: Column[] = [
+      { key: 'icon', label: 'Icon' },
+      { key: 'name', label: 'Name' },
+      { key: 'description', label: 'Description' },
+      { key: 'order', label: 'Order' },
+      { key: 'actions', label: 'Actions' }
+    ];
+
+    const categoriesUrl = computed(() => {
+      const params = new URLSearchParams({
+        page: currentPage.value.toString(),
+        limit: pageSize.value.toString()
+      });
+      if (searchQuery.value) {
+        params.append('search', searchQuery.value);
+      }
+      return `/goal-categories?${params.toString()}`;
+    });
+
+    const { data: categoriesData, error, isValidating: isLoading, mutate } = swrv<PaginatedResponse<GoalCategory>>(
+      categoriesUrl,
+      (url) => api.get(url).then(res => res.data)
     );
+
+    const handlePageChange = (page: number) => {
+      currentPage.value = page;
+    };
+
+    const handleSearch = (query: string) => {
+      searchQuery.value = query;
+      currentPage.value = 1;
+    };
+
+    const handleExport = async (format: 'csv' | 'excel') => {
+      try {
+        isExporting.value = true;
+        const params = new URLSearchParams({ format });
+        if (searchQuery.value) {
+          params.append('search', searchQuery.value);
+        }
+        const response = await api.get(`/goal-categories/export?${params.toString()}`, {
+          responseType: 'blob'
+        });
+        
+        const contentType = format === 'excel' 
+          ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          : 'text/csv';
+        const filename = format === 'excel' ? 'goal-categories.xlsx' : 'goal-categories.csv';
+        
+        const blob = new Blob([response.data], { type: contentType });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Export failed:', error);
+      } finally {
+        isExporting.value = false;
+      }
+    };
     
     const showCreateModal = ref(false);
     const showEditModal = ref(false);
@@ -310,15 +386,21 @@ export default defineComponent({
     };
     
     return {
-      categories,
+      columns,
+      categoriesData,
       error,
       isLoading,
+      searchQuery,
+      isExporting,
       showCreateModal,
       showEditModal,
       showDeleteModal,
       formData,
       formSubmitting,
       categoryToDelete,
+      handlePageChange,
+      handleSearch,
+      handleExport,
       closeModal,
       editCategory,
       createCategory,
