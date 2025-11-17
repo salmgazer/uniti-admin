@@ -1,18 +1,9 @@
 <template>
   <Layout pageTitle="Message Templates">
-    <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+    <div class="mb-8">
       <div>
         <h2 class="text-xl font-semibold">Message Templates</h2>
         <p class="text-gray-500 mt-1">Create and manage reusable message templates</p>
-      </div>
-      <div class="flex items-center space-x-4">
-
-        <router-link to="/message-templates/create" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          Add Template
-        </router-link>
       </div>
     </div>
 
@@ -30,6 +21,14 @@
       @search="handleSearch"
       @export="handleExport"
     >
+      <template #actions>
+        <router-link to="/message-templates/create" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Template
+        </router-link>
+      </template>
       <template #cell-title="{ item }">
         <div>
           <div class="font-medium text-gray-900">{{ item.title }}</div>
@@ -57,6 +56,13 @@
       
       <template #cell-actions="{ item }">
         <div class="flex items-center space-x-1">
+          <button @click="viewDetails(item)" 
+                  class="p-2 text-gray-600 hover:bg-gray-50 rounded transition-colors" title="View Details">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
           <router-link :to="`/message-templates/${item.id}/edit`" 
                        class="p-2 text-primary-600 hover:bg-primary-50 rounded transition-colors" title="Edit">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,6 +208,144 @@
       </div>
     </div>
 
+    <!-- Template Details Modal -->
+    <div v-if="showDetailsModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-medium text-gray-900">Template Details</h3>
+            <button @click="showDetailsModal = false" class="text-gray-400 hover:text-gray-600">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <div v-if="templateToView" class="space-y-6">
+            <!-- Template ID -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Template ID</label>
+              <div class="flex items-center space-x-2">
+                <p class="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg font-mono flex-1">{{ templateToView.id }}</p>
+                <button @click="copyToClipboard(templateToView.id)" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors" title="Copy ID">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Basic Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                <p class="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg">{{ templateToView.title }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <p class="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg">{{ templateToView.category || 'General' }}</p>
+              </div>
+            </div>
+            
+            <!-- Subject -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+              <p class="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg">{{ templateToView.subject }}</p>
+            </div>
+            
+            <!-- Content -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Content</label>
+              <div class="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">{{ templateToView.content }}</div>
+            </div>
+            
+            <!-- Placeholders -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Available Placeholders</label>
+              <div v-if="extractPlaceholders(templateToView).length > 0" class="flex flex-wrap gap-2">
+                <span v-for="placeholder in extractPlaceholders(templateToView)" :key="placeholder" 
+                      class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                  {{ placeholder }}
+                </span>
+              </div>
+              <p v-else class="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">No placeholders found in this template</p>
+            </div>
+            
+            <!-- Translations -->
+            <div v-if="templateToView.translations && Object.keys(templateToView.translations).length > 0">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Translations</label>
+              <div class="space-y-3">
+                <div v-for="(translation, lang) in templateToView.translations" :key="lang" class="border rounded-lg p-3">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-700">{{ lang.toUpperCase() }}</span>
+                  </div>
+                  <div class="text-sm text-gray-900 whitespace-pre-wrap">{{ translation }}</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Subject Translations -->
+            <div v-if="templateToView.subjectTranslations && Object.keys(templateToView.subjectTranslations).length > 0">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Subject Translations</label>
+              <div class="space-y-2">
+                <div v-for="(translation, lang) in templateToView.subjectTranslations" :key="lang" class="flex items-center space-x-3">
+                  <span class="text-sm font-medium text-gray-700 w-12">{{ lang.toUpperCase() }}:</span>
+                  <span class="text-sm text-gray-900">{{ translation }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Media URLs -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Video URLs -->
+              <div v-if="templateToView.videoUrls && Object.keys(templateToView.videoUrls).length > 0">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Video URLs</label>
+                <div class="space-y-2">
+                  <div v-for="(url, lang) in templateToView.videoUrls" :key="lang" class="flex items-center space-x-3">
+                    <span class="text-sm font-medium text-gray-700 w-12">{{ lang.toUpperCase() }}:</span>
+                    <a :href="url" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 truncate">{{ url }}</a>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Audio URLs -->
+              <div v-if="templateToView.audioUrls && Object.keys(templateToView.audioUrls).length > 0">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Audio URLs</label>
+                <div class="space-y-2">
+                  <div v-for="(url, lang) in templateToView.audioUrls" :key="lang" class="flex items-center space-x-3">
+                    <span class="text-sm font-medium text-gray-700 w-12">{{ lang.toUpperCase() }}:</span>
+                    <a :href="url" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 truncate">{{ url }}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Status and Metadata -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <span :class="templateToView.isActive ? 'badge-success' : 'badge-warning'" class="badge">
+                  {{ templateToView.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Created At</label>
+                <p class="text-sm text-gray-900">{{ new Date(templateToView.createdAt).toLocaleString() }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Updated At</label>
+                <p class="text-sm text-gray-900">{{ new Date(templateToView.updatedAt).toLocaleString() }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-6 flex justify-end">
+            <button @click="showDetailsModal = false" class="btn btn-secondary">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Delete Confirmation Modal -->
     <div v-if="showDeleteModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
@@ -244,6 +388,8 @@ export default defineComponent({
     const isExporting = ref(false);
     const showSendModal = ref(false);
     const showDeleteModal = ref(false);
+    const showDetailsModal = ref(false);
+    const templateToView = ref<MessageTemplate | null>(null);
     const formSubmitting = ref(false);
     const templateToDelete = ref<MessageTemplate | null>(null);
     const templateToSend = ref<MessageTemplate | null>(null);
@@ -366,6 +512,11 @@ export default defineComponent({
       }
     };
     
+    const viewDetails = (template: MessageTemplate) => {
+      templateToView.value = template;
+      showDetailsModal.value = true;
+    };
+    
     const sendTemplate = (template: MessageTemplate) => {
       templateToSend.value = template;
       sendData.userIds = [];
@@ -471,6 +622,58 @@ export default defineComponent({
       setTimeout(() => showUserDropdown.value = false, 200);
     };
     
+    const copyToClipboard = async (text: string) => {
+      try {
+        await navigator.clipboard.writeText(text);
+        success('Copied!', 'Template ID copied to clipboard');
+      } catch (err) {
+        console.error('Failed to copy:', err);
+        showError('Copy failed', 'Unable to copy to clipboard');
+      }
+    };
+    
+    const extractPlaceholders = (template: MessageTemplate) => {
+      const placeholders = new Set<string>();
+      
+      const extractFromText = (text: string) => {
+        const regex = /\{\s*([^}]+)\s*\}/g;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          placeholders.add(match[1].trim());
+        }
+      };
+      
+      // Extract from subject
+      if (template.subject) {
+        extractFromText(template.subject);
+      }
+      
+      // Extract from content
+      if (template.content) {
+        extractFromText(template.content);
+      }
+      
+      // Extract from translations
+      if (template.translations) {
+        Object.values(template.translations).forEach(translation => {
+          if (typeof translation === 'string') {
+            extractFromText(translation);
+          }
+        });
+      }
+      
+      // Extract from subject translations
+      if (template.subjectTranslations) {
+        Object.values(template.subjectTranslations).forEach(translation => {
+          if (typeof translation === 'string') {
+            extractFromText(translation);
+          }
+        });
+      }
+      
+      return Array.from(placeholders).sort();
+    };
+    
     return {
       columns,
       templatesData,
@@ -480,6 +683,8 @@ export default defineComponent({
       isExporting,
       showSendModal,
       showDeleteModal,
+      showDetailsModal,
+      templateToView,
       sendData,
       formSubmitting,
       templateToDelete,
@@ -495,6 +700,7 @@ export default defineComponent({
       handlePageChange,
       handleSearch,
       handleExport,
+      viewDetails,
       confirmDelete,
       deleteTemplate,
       sendTemplate,
@@ -502,7 +708,9 @@ export default defineComponent({
       toggleUser,
       removeUser,
       truncate,
-      handleBlur
+      handleBlur,
+      extractPlaceholders,
+      copyToClipboard
     };
   }
 });
