@@ -25,9 +25,6 @@
                 <p class="text-xs text-gray-500">{{ app.appId }}</p>
               </div>
               <div class="flex items-center space-x-2">
-                <span v-if="app.countryCode" class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
-                  {{ app.countryCode }}
-                </span>
                 <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
                   {{ totalUsers || 0 }} users
                 </span>
@@ -102,17 +99,20 @@
         </div>
       </div>
       
-      <!-- Country Information -->
-      <div v-if="app.country" class="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Country Information</h3>
-        
-        <div class="flex items-center">
-          <div v-if="app.country.flagUrl" class="flex-shrink-0 h-12 w-16">
-            <img :src="app.country.flagUrl" class="h-full w-full object-cover rounded" alt="" />
-          </div>
-          <div class="ml-4">
-            <h4 class="font-medium">{{ app.country.name }}</h4>
-            <p class="text-sm text-gray-500">Code: {{ app.country.code }}</p>
+      <!-- Countries -->
+      <div v-if="app.countries?.length" class="bg-white rounded-lg border border-gray-200 p-4">
+        <h3 class="text-base font-semibold text-gray-900 mb-3">Available Countries</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div v-for="country in app.countries" :key="country.id" class="bg-white border border-gray-200 rounded-lg p-3">
+            <div class="flex items-center">
+              <div v-if="country.flagUrl" class="flex-shrink-0 h-8 w-10 mr-3">
+                <img :src="country.flagUrl" class="h-full w-full object-cover rounded" alt="" />
+              </div>
+              <div>
+                <h4 class="font-medium text-sm">{{ country.name }}</h4>
+                <p class="text-xs text-gray-500">{{ country.code }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

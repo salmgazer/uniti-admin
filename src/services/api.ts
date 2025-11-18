@@ -119,8 +119,7 @@ export interface App {
   description?: string;
   imageUrl?: string;
   appId: string;
-  countryCode?: string;
-  country?: Country;
+  countries?: Country[];
   goalCategory?: {
     id: string;
     name: string;

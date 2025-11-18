@@ -62,9 +62,7 @@
               {{ app.title.charAt(0).toUpperCase() }}
             </div>
           </div>
-          <span v-if="app.countryCode" class="absolute top-2 right-2 px-1.5 py-0.5 text-xs font-medium rounded bg-white/80 text-gray-700">
-            {{ app.countryCode }}
-          </span>
+
         </div>
         
         <div class="p-3">
@@ -189,15 +187,28 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Countries</label>
+                <div v-if="selectedFormCountries.length > 0" class="mb-2 p-3 bg-gray-50 rounded-lg border max-h-32 overflow-y-auto">
+                  <div class="text-sm font-medium text-gray-700 mb-2">Selected Countries ({{ selectedFormCountries.length }})</div>
+                  <div class="flex flex-wrap gap-2">
+                    <span v-for="country in selectedFormCountries" :key="country.id" 
+                          class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                      {{ country.name }}
+                      <button @click="removeCountry(country.id)" class="ml-2 text-blue-600 hover:text-blue-800">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                      </button>
+                    </span>
+                  </div>
+                </div>
                 <SearchableDropdown
-                  v-model="selectedFormCountry"
-                  :options="countries"
+                  :model-value="undefined"
+                  :options="countries.filter(country => !formData.countryIds.includes(country.id))"
                   :loading="loadingCountries"
-                  placeholder="Select a country"
-                  option-label="name"
-                  option-value="code"
+                  placeholder="Add countries"
                   @search="searchCountries"
+                  @update:model-value="addCountry"
                 />
               </div>
             </div>
@@ -254,17 +265,14 @@
                 <div v-for="(audio, index) in formData.audios" :key="index" class="flex space-x-2 items-end">
                   <div class="flex-1 min-w-[200px]">
                     <label class="block text-xs text-gray-500">Language</label>
-                    <select v-model="audio.languageCode" class="input text-sm w-full">
-                      <option value="">Select language</option>
-                      <option 
-                        v-for="lang in languages" 
-                        :key="lang.code" 
-                        :value="lang.code"
-                        :disabled="isLanguageSelected(lang.code, index)"
-                      >
-                        {{ lang.title }}
-                      </option>
-                    </select>
+                    <SearchableDropdown
+                      :model-value="getSelectedLanguage(audio.languageCode) || undefined"
+                      :options="languages.filter(lang => !isLanguageSelected(lang.code, index) || lang.code === audio.languageCode)"
+                      :loading="loadingLanguages"
+                      placeholder="Select language"
+                      @search="searchLanguages"
+                      @update:model-value="(lang) => updateLanguageSelection(lang, index)"
+                    />
                   </div>
                   <div class="flex-2">
                     <label class="block text-xs text-gray-500">Audio File</label>
@@ -377,10 +385,30 @@ export default defineComponent({
     const loadingCategories = ref(false);
     const selectedGoalCategory = ref<any>(null);
     const selectedFormCategory = ref<any>(null);
+    const selectedFormCountries = ref<Country[]>([]);
     const selectedFormCountry = ref<any>(null);
+    
+    const addCountry = (country: Country) => {
+      if (country && !formData.countryIds.includes(country.id)) {
+        formData.countryIds.push(country.id);
+        selectedFormCountries.value.push(country);
+      }
+    };
+    
+    const removeCountry = (countryId: string) => {
+      const index = formData.countryIds.indexOf(countryId);
+      if (index > -1) {
+        formData.countryIds.splice(index, 1);
+        const objIndex = selectedFormCountries.value.findIndex(c => c.id === countryId);
+        if (objIndex > -1) {
+          selectedFormCountries.value.splice(objIndex, 1);
+        }
+      }
+    };
     const countries = ref<Country[]>([]);
     const loadingCountries = ref(false);
     const languages = ref<Language[]>([]);
+    const loadingLanguages = ref(false);
     const allGoalSubCategories = ref<any[]>([]);
     const filteredGoalSubCategories = ref<any[]>([]);
     const goals = ref<any[]>([]);
@@ -440,13 +468,35 @@ export default defineComponent({
       loadCountries(query);
     };
     
-    const loadLanguages = async () => {
+    const loadLanguages = async (search = '') => {
       try {
-        const response = await api.get('/languages');
-        languages.value = response.data;
+        loadingLanguages.value = true;
+        const params: any = { page: 1, limit: 50 };
+        if (search) params.search = search;
+        const response = await api.get('/languages', { params });
+        const languageData = response.data.data || response.data;
+        // Transform languages to have 'name' property for SearchableDropdown
+        languages.value = languageData.map((lang: Language) => ({
+          ...lang,
+          name: lang.title
+        }));
       } catch (err) {
         console.error('Failed to load languages:', err);
+      } finally {
+        loadingLanguages.value = false;
       }
+    };
+    
+    const searchLanguages = (query: string) => {
+      loadLanguages(query);
+    };
+    
+    const getSelectedLanguage = (languageCode: string) => {
+      return languages.value.find(lang => lang.code === languageCode) || null;
+    };
+    
+    const updateLanguageSelection = (language: any, index: number) => {
+      formData.audios[index].languageCode = language?.code || '';
     };
     
     onMounted(() => {
@@ -572,9 +622,7 @@ export default defineComponent({
       }
     });
     
-    watch(selectedFormCountry, (newCountry) => {
-      formData.countryCode = newCountry?.code || '';
-    });
+
     
     // Debounced search for local input
     let searchTimeout: NodeJS.Timeout;
@@ -618,7 +666,7 @@ export default defineComponent({
       imageUrl: '',
       appId: '',
       goalCategoryId: '',
-      countryCode: '',
+      countryIds: [] as string[],
       goalSubCategoryIds: [] as string[],
       goalIds: [] as string[],
       audios: [] as { languageCode: string; file: File | null }[]
@@ -631,11 +679,12 @@ export default defineComponent({
       formData.imageUrl = '';
       formData.appId = '';
       formData.goalCategoryId = '';
-      formData.countryCode = '';
+      formData.countryIds = [];
       formData.goalSubCategoryIds = [];
       formData.goalIds = [];
       formData.audios = [];
       selectedFormCategory.value = {} as any;
+      selectedFormCountries.value = [];
       selectedFormCountry.value = {} as any;
       availableGoals.value = [];
     };
@@ -653,9 +702,9 @@ export default defineComponent({
       formData.imageUrl = app.imageUrl || '';
       formData.appId = app.appId;
       formData.goalCategoryId = app.goalCategory?.id || '';
-      formData.countryCode = app.countryCode || '';
+      formData.countryIds = app.countries?.map(c => c.id) || [];
       selectedFormCategory.value = app.goalCategory || {} as any;
-      selectedFormCountry.value = countries.value.find(c => c.code === app.countryCode) || {} as any;
+      selectedFormCountries.value = app.countries || [];
       
       // Filter sub categories and set selections
       if (formData.goalCategoryId) {
@@ -681,7 +730,7 @@ export default defineComponent({
           imageUrl: formData.imageUrl,
           appId: formData.appId,
           goalCategoryId: formData.goalCategoryId,
-          countryCode: formData.countryCode
+          countryIds: formData.countryIds
         });
         
         // Upload audio files if any
@@ -717,7 +766,7 @@ export default defineComponent({
           imageUrl: formData.imageUrl,
           appId: formData.appId,
           goalCategoryId: formData.goalCategoryId,
-          countryCode: formData.countryCode
+          countryIds: formData.countryIds
         });
         
         // Upload audio files if any
@@ -846,8 +895,10 @@ export default defineComponent({
     const uniqueCountries = computed(() => {
       const countrySet = new Set();
       allApps.value.forEach(app => {
-        if (app.countryCode) {
-          countrySet.add(app.countryCode);
+        if (app.countries?.length) {
+          app.countries.forEach(country => {
+            countrySet.add(country.code);
+          });
         }
       });
       return Array.from(countrySet);
@@ -871,6 +922,9 @@ export default defineComponent({
       goalCategoryFilter,
       selectedGoalCategory,
       selectedFormCategory,
+      selectedFormCountries,
+      addCountry,
+      removeCountry,
       selectedFormCountry,
       loadingCountries,
       searchCountries,
@@ -885,6 +939,10 @@ export default defineComponent({
       goals,
       countries,
       languages,
+      loadingLanguages,
+      searchLanguages,
+      getSelectedLanguage,
+      updateLanguageSelection,
       availableGoals,
       onCategoryChange,
       updateAvailableGoals,
