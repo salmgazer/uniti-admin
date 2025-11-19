@@ -5,23 +5,64 @@
       <h1 v-if="!isCollapsed" class="text-xl font-bold text-white">Uniti Admin</h1>
     </div>
     <nav class="flex-1 px-4 py-2">
-      <router-link 
-        v-for="item in menuItems" 
-        :key="item.path" 
-        :to="item.path"
-        @click.stop
-        :class="['flex items-center rounded-lg transition-all duration-200 text-gray-300 hover:text-white', 
-          isCollapsed ? 'p-2 justify-center mb-3' : 'py-3 px-4 mb-1',
-          { 
-            'bg-gradient-to-r from-gray-600 to-gray-700 shadow-md text-white font-medium': isActive(item.path), 
-            'hover:bg-gray-700/50 hover:translate-x-1': !isActive(item.path) 
-          }
-        ]"
-        :title="isCollapsed ? item.name : ''"
-      >
-        <svg :class="['transition-all duration-200', isCollapsed ? 'w-14 h-10' : 'w-5 h-5 mr-3']" fill="none" stroke="currentColor" viewBox="0 0 24 24" v-html="getMenuIcon(item.name)"></svg>
-        <span v-if="!isCollapsed">{{ item.name }}</span>
-      </router-link>
+      <template v-for="item in menuItems" :key="item.path">
+        <!-- Dropdown Item -->
+        <div v-if="item.isDropdown" class="mb-1">
+          <button
+            @click="toggleDropdown(item.name)"
+            :class="['w-full flex items-center rounded-lg transition-all duration-200 text-gray-300 hover:text-white', 
+              isCollapsed ? 'p-2 justify-center' : 'py-3 px-4',
+              { 
+                'bg-gradient-to-r from-gray-600 to-gray-700 shadow-md text-white font-medium': isDropdownActive(item), 
+                'hover:bg-gray-700/50 hover:translate-x-1': !isDropdownActive(item) 
+              }
+            ]"
+            :title="isCollapsed ? item.name : ''"
+          >
+            <svg :class="['transition-all duration-200', isCollapsed ? 'w-14 h-10' : 'w-5 h-5 mr-3']" fill="none" stroke="currentColor" viewBox="0 0 24 24" v-html="getMenuIcon(item.name)"></svg>
+            <span v-if="!isCollapsed" class="flex-1 text-left">{{ item.name }}</span>
+            <svg v-if="!isCollapsed" :class="['w-4 h-4 transition-transform duration-200', expandedDropdowns.includes(item.name) ? 'rotate-180' : '']" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <!-- Sub Items -->
+          <div v-if="!isCollapsed && expandedDropdowns.includes(item.name)" class="ml-6 mt-1 space-y-1">
+            <router-link 
+              v-for="subItem in item.subItems" 
+              :key="subItem.path" 
+              :to="subItem.path"
+              :class="['flex items-center py-2 px-3 rounded-lg transition-all duration-200 text-gray-400 hover:text-white text-sm',
+                { 
+                  'bg-gradient-to-r from-gray-600 to-gray-700 shadow-md text-white font-medium': isActive(subItem.path), 
+                  'hover:bg-gray-700/50 hover:translate-x-1': !isActive(subItem.path) 
+                }
+              ]"
+            >
+              <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" v-html="subItem.icon"></svg>
+              {{ subItem.name }}
+            </router-link>
+          </div>
+        </div>
+        
+        <!-- Regular Item -->
+        <router-link 
+          v-else
+          :to="item.path"
+          @click.stop
+          :class="['flex items-center rounded-lg transition-all duration-200 text-gray-300 hover:text-white', 
+            isCollapsed ? 'p-2 justify-center mb-3' : 'py-3 px-4 mb-1',
+            { 
+              'bg-gradient-to-r from-gray-600 to-gray-700 shadow-md text-white font-medium': isActive(item.path), 
+              'hover:bg-gray-700/50 hover:translate-x-1': !isActive(item.path) 
+            }
+          ]"
+          :title="isCollapsed ? item.name : ''"
+        >
+          <svg :class="['transition-all duration-200', isCollapsed ? 'w-14 h-10' : 'w-5 h-5 mr-3']" fill="none" stroke="currentColor" viewBox="0 0 24 24" v-html="getMenuIcon(item.name)"></svg>
+          <span v-if="!isCollapsed">{{ item.name }}</span>
+        </router-link>
+      </template>
     </nav>
     <div class="p-4 border-t border-gray-700/50">
       <div v-if="!isCollapsed" class="text-center text-xs text-gray-400 mb-3">
@@ -51,8 +92,16 @@ export default defineComponent({
     const menuItems = [
       { name: 'Dashboard', path: '/' },
       { name: 'Users', path: '/users' },
-      { name: 'Messages', path: '/messages' },
-      { name: 'Message Templates', path: '/message-templates' },
+      { 
+        name: 'Messaging', 
+        path: '/messaging',
+        isDropdown: true,
+        subItems: [
+          { name: 'Messages', path: '/messages', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />' },
+          { name: 'Message Templates', path: '/message-templates', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />' },
+          { name: 'Message Queue', path: '/message-queue', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />' }
+        ]
+      },
       { name: 'Goal Categories', path: '/goal-categories' },
       { name: 'Apps', path: '/apps' },
       { name: 'App Settings', path: '/app-settings' },
@@ -61,6 +110,8 @@ export default defineComponent({
       { name: 'Admin Users', path: '/admin' },
     ];
     
+    const expandedDropdowns = ref<string[]>([]);
+    
     const isActive = (path: string) => {
       if (path === '/') {
         return route.path === '/';
@@ -68,12 +119,39 @@ export default defineComponent({
       return route.path.startsWith(path);
     };
     
+    const isDropdownActive = (item: any) => {
+      return item.subItems?.some((subItem: any) => isActive(subItem.path));
+    };
+    
+    const toggleDropdown = (itemName: string) => {
+      const index = expandedDropdowns.value.indexOf(itemName);
+      if (index > -1) {
+        expandedDropdowns.value.splice(index, 1);
+      } else {
+        expandedDropdowns.value.push(itemName);
+      }
+    };
+    
+    // Auto-expand dropdown if current route is in it
+    watch(() => route.path, () => {
+      menuItems.forEach(item => {
+        if (item.isDropdown && item.subItems) {
+          const hasActiveSubItem = item.subItems.some((subItem: any) => isActive(subItem.path));
+          if (hasActiveSubItem && !expandedDropdowns.value.includes(item.name)) {
+            expandedDropdowns.value.push(item.name);
+          }
+        }
+      });
+    }, { immediate: true });
+    
     const getMenuIcon = (name: string) => {
       const icons: Record<string, string> = {
         'Dashboard': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />',
         'Users': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />',
         'Messages': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />',
         'Message Templates': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />',
+        'Messaging': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />',
+        'Message Queue': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />',
         'Goal Categories': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2zm8 0h-2a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2z" />',
         'Apps': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />',
         'App Settings': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />',
@@ -96,6 +174,9 @@ export default defineComponent({
     return {
       menuItems,
       isActive,
+      isDropdownActive,
+      expandedDropdowns,
+      toggleDropdown,
       getMenuIcon,
       toggleCollapse,
       isCollapsed,

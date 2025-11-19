@@ -61,6 +61,12 @@ export const endpoints = {
   // Analytics
   userAnalytics: (id: string) => `/users/${id}/analytics`,
   analyticsOverview: '/analytics/overview',
+  
+  // Message Queue
+  queueStats: '/message-queue/admin/stats',
+  queue: '/message-queue/admin',
+  queueProcess: '/message-queue/admin/process',
+  queueRetry: (id: string) => `/message-queue/admin/${id}/retry`,
 };
 
 // Types
@@ -221,4 +227,26 @@ export interface AnalyticsOverview {
     userCount: number;
     appCount: number;
   }[];
+}
+
+export interface QueueStats {
+  pending: number;
+  processing: number;
+  completed: number;
+  failed: number;
+  total: number;
+}
+
+export interface QueueItem {
+  id: string;
+  templateId: string;
+  templateTitle: string;
+  userCount: number;
+  processedCount: number;
+  remainingCount: number;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  error?: string;
+  retryCount: number;
+  createdAt: string;
+  updatedAt: string;
 }
