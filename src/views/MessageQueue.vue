@@ -135,6 +135,13 @@
       :pagination="pagination"
       @page-change="handlePageChange"
     >
+      <template #cell-batchInfo="{ item }">
+        <span v-if="item.batchId" class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+          Batch
+        </span>
+        <span v-else class="text-gray-400 text-xs">Single</span>
+      </template>
+      
       <template #cell-status="{ item }">
         <span :class="getStatusClass(item.status)" class="px-2 py-1 rounded-full text-xs font-medium">
           {{ item.status.toUpperCase() }}
@@ -202,6 +209,7 @@
               <div class="bg-gray-50 p-4 rounded-lg space-y-2">
                 <div><span class="font-medium">Title:</span> {{ selectedItem.templateTitle }}</div>
                 <div><span class="font-medium">ID:</span> {{ selectedItem.templateId }}</div>
+                <div v-if="selectedItem.batchId"><span class="font-medium">Batch ID:</span> {{ selectedItem.batchId }}</div>
                 <div><span class="font-medium">Content:</span></div>
                 <div class="bg-white p-3 rounded border text-sm">{{ selectedItem.templateContent }}</div>
               </div>
@@ -303,6 +311,7 @@ const pagination = ref({
 const columns = [
   { key: 'id', label: 'Queue ID', sortable: true },
   { key: 'templateTitle', label: 'Template', sortable: true },
+  { key: 'batchInfo', label: 'Batch', slot: true },
   { key: 'userCount', label: 'Users', sortable: true },
   { key: 'progress', label: 'Progress', slot: true },
   { key: 'status', label: 'Status', slot: true, sortable: true },

@@ -241,6 +241,7 @@ export interface QueueItem {
   id: string;
   templateId: string;
   templateTitle: string;
+  batchId?: string;
   userCount: number;
   processedCount: number;
   remainingCount: number;
