@@ -147,8 +147,9 @@ export default defineComponent({
 
     const loadAudios = async () => {
       try {
-        const response = await api.get('/app-screen-audio');
-        audios.value = response.data.filter((a: AudioFile) => a.screenName === screenName.value);
+        const response = await api.get(`/app-screen-audio/screen/${screenName.value}`);
+        audios.value = response.data;
+        console.log('Loaded audios:', audios.value);
       } catch (error) {
         console.error('Failed to load audios:', error);
       }
@@ -157,14 +158,17 @@ export default defineComponent({
     const loadLanguages = async () => {
       try {
         const response = await api.get('/languages');
-        languages.value = response.data;
+        languages.value = response.data.data;
+        console.log('Loaded languages:', languages.value);
       } catch (error) {
         console.error('Failed to load languages:', error);
       }
     };
 
     const getAudio = (languageCode: string) => {
-      return audios.value.find(a => a.languageCode === languageCode);
+      const audio = audios.value.find(a => a.languageCode === languageCode);
+      console.log(`Looking for audio with languageCode: ${languageCode}, found:`, audio);
+      return audio;
     };
 
     const triggerFileInput = (languageCode: string) => {
